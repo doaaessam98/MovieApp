@@ -1,7 +1,9 @@
 package com.example.movieapp.Screens.view.home
 
 import android.annotation.SuppressLint
+import android.provider.Settings.Global.getString
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.example.movieapp.R
 import com.example.movieapp.Screens.uiState.HomeState
 import com.example.movieapp.models.Movie
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +53,7 @@ fun ListOfMovies(modifier: Modifier, moviesState: HomeState) {
 
             }
             is HomeState.Movies->{
-                ShowMovies(state.data)
+                ShowMovies(modifier,state.data)
             }
             else -> {}
         }
@@ -67,12 +72,17 @@ fun ShowMovies(modifier: Modifier,data: Flow<PagingData<Movie>>) {
     
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MovieItem(modifier: Modifier,movie: Movie?) {
     Card(modifier.fillMaxWidth().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(painter = movie.posterPath, contentDescription = "movie_image",
-                )
+
+            GlideImage(
+                model = movie?.posterPath,
+                contentDescription = "",
+
+            )
             Text(text = movie!!.title,modifier.padding(start = 16.dp),
                 style = MaterialTheme.typography.subtitle2
             )
