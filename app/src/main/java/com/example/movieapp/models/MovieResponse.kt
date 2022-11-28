@@ -1,18 +1,32 @@
 package com.example.movieapp.models
 
 
-import com.example.movieapp.models.Movie
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 
-@Serializable
+import com.google.gson.annotations.SerializedName
+
+
+
+
+
 data class MovieResponse(
-    @SerialName("page")
-    val page: Int,
-    @SerialName("results")
-    val movies: List<Movie> =emptyList(),
-    @SerialName("total_pages")
-    val totalPages: Int = 0,
-    @SerialName("total_results")
-    val totalResults: Int =0
+    @SerializedName("page")
+    val page: Int=0,
+    @SerializedName("results")
+    val results: List<Movie>,
+    @SerializedName("total_pages")
+    val totalPages: Int=0,
+    @SerializedName("total_results")
+    val totalResults: Int=0
+
 )
+
+//data class MoviesResponse(
+//    @SerializedName("page")
+//    val page: Int = 0,
+//    @SerializedName("results")
+//    val results: ArrayList<Result> = arrayListOf(),
+//    @SerializedName("total_pages")
+//    val totalPages: Int = 0,
+//    @SerializedName("total_results")
+//    val totalResults: Int = 0
+//): java.io.Serializable

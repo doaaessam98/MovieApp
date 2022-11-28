@@ -11,7 +11,10 @@ import com.example.movieapp.Screens.view.home.HomeScreen
 @Composable
 fun AppNav(modifier: Modifier,navController:NavHostController){
 
-  NavHost(navController = navController, startDestination =Screen.HomeScreen.route  ){
+  NavHost(
+      navController = navController,
+      startDestination =Screen.HomeScreen.route
+  ){
       composable(Screen.HomeScreen.route){
           HomeScreen(modifier = modifier)
       }

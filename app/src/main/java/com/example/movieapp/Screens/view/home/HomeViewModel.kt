@@ -1,5 +1,8 @@
 package com.example.movieapp.Screens.view.home
 
+import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -24,6 +27,7 @@ class HomeViewModel @Inject constructor(private val repository: IRepository):Vie
         get() = _popularMoviesState
      init {
       getPopularMovies()
+
         }
 
 
@@ -57,12 +61,17 @@ class HomeViewModel @Inject constructor(private val repository: IRepository):Vie
     }
 
 
+    @SuppressLint("SuspiciousIndentation")
     private fun  getPopularMovies(){
+        Log.e(TAG, "getPopularMovies: vm", )
      viewModelScope.launch {
+         repository.get()
          _popularMoviesState.emit(HomeState.Loading)
             try {
              val result =  repository.getMovies(ApiQuery.Popular)
                     .cachedIn(viewModelScope)
+              //  val er= repository.getMovies(ApiQuery.Popular)
+              //  Log.e(TAG, "getPopularMovies: ${result.collect()}", )
                    _popularMoviesState.emit( HomeState.Movies(result))
 
 

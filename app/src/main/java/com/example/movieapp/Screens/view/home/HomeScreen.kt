@@ -1,7 +1,9 @@
 package com.example.movieapp.Screens.view.home
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.provider.Settings.Global.getString
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -47,12 +49,13 @@ fun ListOfMovies(modifier: Modifier, moviesState: HomeState) {
     moviesState.let { state->
         when(state){
             is HomeState.Loading->{
-
+                Log.e(TAG, "ListOfMovies: loading", )
             }
             is HomeState.Error->{
-
+                Log.e(TAG, "ListOfMovies: error${state.errorMessage}", )
             }
             is HomeState.Movies->{
+                Log.e(TAG, "ListOfMovies: ${state.data}", )
                 ShowMovies(modifier,state.data)
             }
             else -> {}
@@ -64,6 +67,7 @@ fun ListOfMovies(modifier: Modifier, moviesState: HomeState) {
 @Composable
 fun ShowMovies(modifier: Modifier,data: Flow<PagingData<Movie>>) {
     val movies = data.collectAsLazyPagingItems()
+    Log.e(TAG, "ShowMovies: ${movies.itemCount}", )
     LazyColumn(){
         items(movies){movie->
             MovieItem(modifier,movie)
@@ -75,7 +79,11 @@ fun ShowMovies(modifier: Modifier,data: Flow<PagingData<Movie>>) {
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MovieItem(modifier: Modifier,movie: Movie?) {
-    Card(modifier.fillMaxWidth().padding(16.dp)) {
+    Log.e(TAG, "MovieItem: ${movie}", )
+    Card(
+        modifier
+            .fillMaxWidth()
+            .padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
 
             GlideImage(

@@ -1,5 +1,7 @@
 package com.example.movieapp.data.repository
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -11,7 +13,9 @@ import com.example.movieapp.data.source.remote.RemoteDataSource
 
 import com.example.movieapp.models.ApiQuery
 import com.example.movieapp.models.Movie
+import com.example.movieapp.models.MovieResponse
 import kotlinx.coroutines.flow.Flow
+import retrofit2.Response
 import javax.inject.Inject
 
 class Repository  @Inject constructor(
@@ -21,15 +25,17 @@ class Repository  @Inject constructor(
     ): IRepository {
 
     override fun getMovies(query: ApiQuery): Flow<PagingData<Movie>> {
-
+        Log.e(TAG, "getMovies: repo", )
         val pagingSourceFactory ={
             when (query) {
-                is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMovieByPopularity()
+              is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMovieByPopularity()
                 is ApiQuery.TopRated -> localDataSource.databaseObject.reposDao().getMovieByTopRated()
 
             }
-    }
 
+    }
+        Log.e(TAG, "getMovies: ${pagingSourceFactory}", )
+        Log.e(TAG, "getMovies: ${localDataSource.databaseObject.reposDao().getMovieByPopularity()}", )
 
         @OptIn(ExperimentalPagingApi::class)
         return Pager(
@@ -45,6 +51,10 @@ class Repository  @Inject constructor(
 
     }
 
-
+    override suspend fun get():Response<MovieResponse> {
+        Log.e(TAG, "getrepo: ${remoteDataSource.get().body()}", )
+        Log.e(TAG, "getrepo: ${remoteDataSource.get().errorBody()}", )
+       return remoteDataSource.get()
+    }
 }
 
