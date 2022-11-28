@@ -18,6 +18,7 @@ data class MovieResponse(
     @SerializedName("total_results")
     val totalResults: Int=0
 
+
 )
 
 //data class MoviesResponse(

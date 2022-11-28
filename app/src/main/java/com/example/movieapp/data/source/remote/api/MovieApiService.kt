@@ -15,14 +15,14 @@ interface MovieApiService {
         @Query("api_key")api_key:String =Constants.API_KEY,
         @Query("page") page: Int,
         @Query("per_page") itemsPerPage: Int
-    ):Response<MovieResponse>
+    ):MovieResponse
 
     @GET("movie/top_rated?")
     suspend  fun getTopRatedMovies(
         @Query("api_key")api_key:String=Constants.API_KEY,
         @Query("page") page :Int,
         @Query("per_page") itemsPerPage: Int
-    ): Response<MovieResponse>
+    ): MovieResponse
 
 
     @GET("movie/{movie_id}?")

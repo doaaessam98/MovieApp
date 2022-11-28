@@ -51,10 +51,6 @@ class Repository  @Inject constructor(
 
     }
 
-    override suspend fun get():Response<MovieResponse> {
-        Log.e(TAG, "getrepo: ${remoteDataSource.get().body()}", )
-        Log.e(TAG, "getrepo: ${remoteDataSource.get().errorBody()}", )
-       return remoteDataSource.get()
-    }
+
 }
 

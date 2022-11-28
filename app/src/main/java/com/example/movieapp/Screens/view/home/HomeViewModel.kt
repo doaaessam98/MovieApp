@@ -16,6 +16,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: IRepository):ViewModel() {
@@ -26,20 +27,33 @@ class HomeViewModel @Inject constructor(private val repository: IRepository):Vie
     val popularMoviesState: StateFlow<HomeState>
         get() = _popularMoviesState
      init {
-      getPopularMovies()
+         setData()
+         handelHomeIntent()
+     // getPopularMovies()
 
         }
 
+    private fun setData() {
+        viewModelScope.launch {
+            intentChannel.send(HomeIntent.FetchTopRateMovies)
+        }
+    }
 
 
     fun handelHomeIntent(){
+        Log.e(TAG, "handelHomeIntent: ", )
       viewModelScope.launch {
+          Log.e(TAG, "handelHomeIntent: ", )
+
           intentChannel.consumeAsFlow().collect{intent->
+              Log.e(TAG, "handelHomeIntentininin: $intent", )
               when(intent){
                   is HomeIntent.FetchPopularMovies->{
+                      Log.e(TAG, "handelHomeIntent: ppppp", )
                       getPopularMovies()
                   }
                   is HomeIntent.FetchTopRateMovies->{
+                      Log.e(TAG, "handelHomeIntent: FetchTopRateMovies", )
                       getTopRateMovies()
                   }
                   is HomeIntent.MovieSelected->{
@@ -57,21 +71,33 @@ class HomeViewModel @Inject constructor(private val repository: IRepository):Vie
     }
 
     private fun getTopRateMovies() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            _popularMoviesState.emit(HomeState.Loading)
+            try {
+                val result =  repository.getMovies(ApiQuery.TopRated)
+                    .cachedIn(viewModelScope)
+
+                _popularMoviesState.emit( HomeState.Movies(result))
+
+
+
+            }catch (e:Exception){
+                _popularMoviesState.emit(HomeState.Error(e.localizedMessage))
+            }
+
+
+        }
     }
 
 
     @SuppressLint("SuspiciousIndentation")
     private fun  getPopularMovies(){
-        Log.e(TAG, "getPopularMovies: vm", )
      viewModelScope.launch {
-         repository.get()
          _popularMoviesState.emit(HomeState.Loading)
             try {
              val result =  repository.getMovies(ApiQuery.Popular)
                     .cachedIn(viewModelScope)
-              //  val er= repository.getMovies(ApiQuery.Popular)
-              //  Log.e(TAG, "getPopularMovies: ${result.collect()}", )
+
                    _popularMoviesState.emit( HomeState.Movies(result))
 
 

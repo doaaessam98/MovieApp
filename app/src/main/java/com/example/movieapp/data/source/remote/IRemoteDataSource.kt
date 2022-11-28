@@ -7,7 +7,7 @@ import retrofit2.Response
 interface IRemoteDataSource {
 
      val movieApiServiceObject: MovieApiService?
-     suspend fun get():Response<MovieResponse>
+
 }
 
 

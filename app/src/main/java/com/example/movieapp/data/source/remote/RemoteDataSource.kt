@@ -16,8 +16,5 @@ class RemoteDataSource @Inject constructor(private val movieApiService: MovieApi
         get() = movieApiService
 
 
-    override suspend fun get():Response<MovieResponse>{
-        Log.e(TAG, "get: remotr${movieApiService.getPopularMovies(page = 1, itemsPerPage = 30).body()}", )
-     return   movieApiService.getPopularMovies(page = 1, itemsPerPage = 30)
-    }
+
 }

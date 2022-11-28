@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
@@ -27,8 +28,10 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.movieapp.R
 import com.example.movieapp.Screens.uiState.HomeState
+import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import kotlinx.coroutines.flow.Flow
+import retrofit2.http.Url
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -85,10 +88,10 @@ fun MovieItem(modifier: Modifier,movie: Movie?) {
             .fillMaxWidth()
             .padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-
+            Log.e(TAG, "MovieItem:${Constants.IMAGE_URL}${movie?.posterPath} " )
             GlideImage(
-                model = movie?.posterPath,
-                contentDescription = "",
+                model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+                contentDescription = "",modifier.requiredSize(200.dp)
 
             )
             Text(text = movie!!.title,modifier.padding(start = 16.dp),

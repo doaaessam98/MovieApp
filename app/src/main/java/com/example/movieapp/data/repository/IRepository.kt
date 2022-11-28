@@ -10,5 +10,5 @@ import retrofit2.Response
 interface IRepository {
 
      fun getMovies(query: ApiQuery): Flow<PagingData<Movie>>
-     suspend fun get():Response<MovieResponse>
+
 }
