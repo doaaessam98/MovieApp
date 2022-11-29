@@ -23,7 +23,7 @@ class MovieRemoteMediator(
     private val moviesDatabase: MoviesDatabase
 
 ) : RemoteMediator<Int, Movie>() {
-    lateinit var response :Response<MovieResponse>
+    lateinit var response :MovieResponse
     override suspend fun load(loadType: LoadType, state: PagingState<Int, Movie>): MediatorResult {
         val page = when (loadType) {
             LoadType.REFRESH -> {
@@ -49,25 +49,21 @@ class MovieRemoteMediator(
 
             when(query){
                is ApiQuery.Popular->{
-                   Log.e(TAG, "load: ${page},,,,${state.config.pageSize}", )
-
                    response = service.getPopularMovies(page = page, itemsPerPage = state.config.pageSize)
-                   Log.e(TAG, "load: ${response.body()?.results}", )
-                   Log.e(TAG, "load: ${response.body()?.results?.size}", )
-                   Log.e(TAG, "load: ${response.body()?.page}", )
-                   Log.e(TAG, "load: ${response.body()?.totalPages}", )
-                   Log.e(TAG, "load: ${response.body()?.totalResults}", )
+                   Log.e(TAG, "load: ${page}.......${response.results.size}", )
+
+
 
 
                }
                 is ApiQuery.TopRated->{
-                   // response = service.getTopRatedMovies(page = page, itemsPerPage = state.config.pageSize).body()!!
+                    response = service.getTopRatedMovies(page = page, itemsPerPage = state.config.pageSize)
                 }
 
 
             }
-            val movies = response.body()?.results
-            val endOfPaginationReached = movies?.isEmpty()
+            val movies = response.results
+            val endOfPaginationReached = movies.isEmpty()
              moviesDatabase.withTransaction {
                  if (loadType == LoadType.REFRESH) {
                       moviesDatabase.remoteKeysDao().clearRemoteKeys()
@@ -75,17 +71,15 @@ class MovieRemoteMediator(
                  }
                  val prevKey = if (page == MOVIES_STARTING_PAGE_INDEX) null else page - 1
                  val nextKey = if (endOfPaginationReached==true) null else page + 1
-                 val keys = movies?.map {movie->
+                 val keys = movies.map { movie->
                      RemoteKeys(MovieId = movie.id, prevKey = prevKey, nextKey = nextKey)
                  }
-                 if(keys!=null) {
-                     moviesDatabase.remoteKeysDao().insertAll(keys)
-                 }
-                 if(movies!=null) {
-                     moviesDatabase.reposDao().insertAll(movies)
-                 }
+                 moviesDatabase.remoteKeysDao().insertAll(keys)
+                 moviesDatabase.reposDao().insertAll(movies)
+                 Log.e(TAG, "load: ${page}.......${movies.size}", )
+
              }
-            return MediatorResult.Success(endOfPaginationReached= endOfPaginationReached!!)
+            return MediatorResult.Success(endOfPaginationReached= endOfPaginationReached)
         } catch (exception: IOException) {
             return RemoteMediator.MediatorResult.Error(exception)
 

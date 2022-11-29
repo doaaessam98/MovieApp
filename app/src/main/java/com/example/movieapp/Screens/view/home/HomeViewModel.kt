@@ -41,19 +41,18 @@ class HomeViewModel @Inject constructor(private val repository: IRepository):Vie
 
 
     fun handelHomeIntent(){
-        Log.e(TAG, "handelHomeIntent: ", )
+
       viewModelScope.launch {
-          Log.e(TAG, "handelHomeIntent: ", )
+
 
           intentChannel.consumeAsFlow().collect{intent->
-              Log.e(TAG, "handelHomeIntentininin: $intent", )
+
               when(intent){
                   is HomeIntent.FetchPopularMovies->{
-                      Log.e(TAG, "handelHomeIntent: ppppp", )
+
                       getPopularMovies()
                   }
                   is HomeIntent.FetchTopRateMovies->{
-                      Log.e(TAG, "handelHomeIntent: FetchTopRateMovies", )
                       getTopRateMovies()
                   }
                   is HomeIntent.MovieSelected->{
