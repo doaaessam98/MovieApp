@@ -1,7 +1,5 @@
 package com.example.movieapp.data.repository
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -10,10 +8,9 @@ import com.example.movieapp.Utils.Constants.NETWORK_PAGE_SIZE
 import com.example.movieapp.data.paging.MovieRemoteMediator
 import com.example.movieapp.data.source.local.ILocalDataSource
 import com.example.movieapp.data.source.remote.RemoteDataSource
-
+import com.example.movieapp.base.Result
 import com.example.movieapp.models.ApiQuery
 import com.example.movieapp.models.Movie
-import com.example.movieapp.models.MovieResponse
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 import javax.inject.Inject
@@ -24,8 +21,8 @@ class Repository  @Inject constructor(
 
     ): IRepository {
 
-    override fun getMovies(query: ApiQuery): Flow<PagingData<Movie>> {
-        Log.e(TAG, "getMovies: repo", )
+    override fun getMovies(query: ApiQuery): Result<Flow<PagingData<Movie>>> {
+
         val pagingSourceFactory ={
             when (query) {
               is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMovieByPopularity()
@@ -34,21 +31,23 @@ class Repository  @Inject constructor(
             }
 
     }
-        Log.e(TAG, "getMovies: ${pagingSourceFactory}", )
-        Log.e(TAG, "getMovies: ${localDataSource.databaseObject.reposDao().getMovieByPopularity()}", )
 
         @OptIn(ExperimentalPagingApi::class)
-        return Pager(
-            config = PagingConfig(pageSize = NETWORK_PAGE_SIZE, enablePlaceholders = false),
-            remoteMediator = MovieRemoteMediator(
-                query,
-                remoteDataSource.movieApiServiceObject,
-                localDataSource.databaseObject
-            ),
-            pagingSourceFactory = pagingSourceFactory
-        ).flow
+        return  try {
 
-
+               val result= Pager(
+                    config = PagingConfig(pageSize = NETWORK_PAGE_SIZE, enablePlaceholders = false),
+                    remoteMediator = MovieRemoteMediator(
+                        query,
+                        remoteDataSource.movieApiServiceObject,
+                        localDataSource.databaseObject
+                    ),
+                    pagingSourceFactory = pagingSourceFactory
+                ).flow
+                Result.Success(result)
+            }catch (e:Exception){
+            Result.Error(e.localizedMessage)
+            }
     }
 
 

@@ -1,69 +1,50 @@
 package com.example.movieapp.Screens.view.home
 
 import android.annotation.SuppressLint
-import android.content.ContentValues.TAG
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.cachedIn
 import com.example.movieapp.Screens.intent.HomeIntent
+import com.example.movieapp.Screens.sideEfect.HomeSideEffect
 import com.example.movieapp.Screens.uiState.HomeState
+import com.example.movieapp.base.BaseViewModel
+import com.example.movieapp.base.Result
 import com.example.movieapp.data.repository.IRepository
 import com.example.movieapp.models.ApiQuery
 import com.example.movieapp.models.Movie
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.math.log
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repository: IRepository):ViewModel() {
-    private val intentChannel: Channel<HomeIntent> = Channel()
+class HomeViewModel @Inject constructor(private val repository: IRepository)
+    :BaseViewModel<HomeIntent,HomeState,HomeSideEffect>() {
 
+    override fun initialState(): HomeState {
+        return HomeState()
+    }
 
-    private val _popularMoviesState = MutableStateFlow<HomeState>(HomeState.Idle)
-    val popularMoviesState: StateFlow<HomeState>
-        get() = _popularMoviesState
-     init {
-         setData()
-         handelHomeIntent()
-     // getPopularMovies()
+    override fun handleEvents(event: HomeIntent) {
+        when (event) {
+            is HomeIntent.FetchPopularMovies -> {
+                getPopularMovies()
+            }
+            is HomeIntent.FetchTopRateMovies -> {
+                getTopRateMovies()
+            }
+            is HomeIntent.MovieSelected -> {
+              setEffect { HomeSideEffect.Navigation.OpenMovieDetails(movie = event.movie!!) }
 
+            }
+            else -> {}
         }
 
-    private fun setData() {
-        viewModelScope.launch {
-            intentChannel.send(HomeIntent.FetchTopRateMovies)
-        }
     }
 
 
-    fun handelHomeIntent(){
-
-      viewModelScope.launch {
-
-
-          intentChannel.consumeAsFlow().collect{intent->
-
-              when(intent){
-                  is HomeIntent.FetchPopularMovies->{
-
-                      getPopularMovies()
-                  }
-                  is HomeIntent.FetchTopRateMovies->{
-                      getTopRateMovies()
-                  }
-                  is HomeIntent.MovieSelected->{
-                         navigateToMovieDetails(intent.movie)
-                  }
-              }
-
-          }
-      }
+    init {
+        getPopularMovies()
 
     }
+
 
     private fun navigateToMovieDetails(movie: Movie) {
         TODO("Not yet implemented")
@@ -71,42 +52,46 @@ class HomeViewModel @Inject constructor(private val repository: IRepository):Vie
 
     private fun getTopRateMovies() {
         viewModelScope.launch {
-            _popularMoviesState.emit(HomeState.Loading)
-            try {
-                val result =  repository.getMovies(ApiQuery.TopRated)
-                    .cachedIn(viewModelScope)
 
-                _popularMoviesState.emit( HomeState.Movies(result))
+            repository.getMovies(ApiQuery.TopRated).let { response ->
 
+                when (response) {
+                    is Result.Loading-> {
+                        setState { copy(isLoading=true) }
+                    }
+                    is Result.Success -> {
+                        setState { copy(movies = response.data,isLoading=false) }
+                    }
+                    is Result.Error -> {
+                         setEffect { HomeSideEffect.ShowLoadDataError(message = response.message!!)}
+                    }
 
-
-            }catch (e:Exception){
-                _popularMoviesState.emit(HomeState.Error(e.localizedMessage))
+                }
             }
-
-
         }
     }
 
 
     @SuppressLint("SuspiciousIndentation")
-    private fun  getPopularMovies(){
-     viewModelScope.launch {
-         _popularMoviesState.emit(HomeState.Loading)
-            try {
-             val result =  repository.getMovies(ApiQuery.Popular)
-                    .cachedIn(viewModelScope)
+    private fun getPopularMovies() {
+        viewModelScope.launch {
+            repository.getMovies(ApiQuery.Popular).let {response->
+                when (response) {
+                     is Result.Loading->{
+                         setState { copy(isLoading = true) }
+                     }
+                    is Result.Success -> {
+                        setState { copy(movies = response.data,isLoading=false) }
+                    }
+                    is Result.Error -> {
+                        setEffect { HomeSideEffect.ShowLoadDataError(message = response.message!!)}
 
-                   _popularMoviesState.emit( HomeState.Movies(result))
+                    }
 
-
-
-            }catch (e:Exception){
-                _popularMoviesState.emit(HomeState.Error(e.localizedMessage))
+                }
             }
 
+        }
+    }
 
-       }
-     }
-   }
-
+}
