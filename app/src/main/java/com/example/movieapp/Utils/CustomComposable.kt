@@ -12,32 +12,33 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
 
 
 //@Composable
 //  fun LoadImageFromNetWork(modifier: Modifier,url:String ,width:Double, height:Double){
-//      CoilImage(
-//          imageModel = {"${Constants.IMAGE_URL}${url}"},
-//          modifier = modifier,
-//          loading = {
-//              LoadingImageShimmer(modifier = modifier, width = width, height = height )
-//          },
-//          failure = {
-//              //Text(text = "image request failed.")
-//              // ImageBitmap.imageResource(R.drawable.placeholder)
+//    val painter = rememberAsyncImagePainter(
+//        model = ImageRequest.Builder(LocalContext.current)
+//            .data("https://example.com/image.jpg")
+//            .size(Size.ORIGINAL) // Set the target size to load the image at.
+//            .build()
+//    )
 //
-//          },
-//          success = {
-//              Image(
-//                  bitmap = it.imageBitmap!!,
-//                  contentDescription = null,
-//                  modifier = Modifier
-//                      .width(width.dp)
-//                      .height(height.dp),
-//                  contentScale = ContentScale.FillWidth
-//              )
-//          })
+//    if (painter.state is AsyncImagePainter.State.Success) {
+//    }
+//
+//    Image(
+//        painter = painter,
+//        contentDescription = ""
+//    )
+//
 //  }
 @SuppressLint("SuspiciousIndentation")
 @Composable
