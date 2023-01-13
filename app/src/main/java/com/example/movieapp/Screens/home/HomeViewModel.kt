@@ -2,7 +2,6 @@ package com.example.movieapp.Screens.home
 
 import android.annotation.SuppressLint
 import androidx.lifecycle.viewModelScope
-import com.example.movieapp.Screens.sideEfect.HomeSideEffect
 import com.example.movieapp.base.BaseViewModel
 import com.example.movieapp.base.Result
 import com.example.movieapp.data.repository.IRepository
@@ -14,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: IRepository)
-    :BaseViewModel<HomeIntent, HomeState,HomeSideEffect>() {
+    :BaseViewModel<HomeIntent, HomeState, HomeSideEffect>() {
 
     override fun initialState(): HomeState {
         return HomeState()

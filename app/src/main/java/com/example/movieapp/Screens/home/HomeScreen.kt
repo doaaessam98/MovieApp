@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,9 +26,7 @@ import androidx.paging.compose.items
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.movieapp.R
-import com.example.movieapp.Screens.LoadImageFromNetWork
 import com.example.movieapp.Screens.LoadingImageShimmer
-import com.example.movieapp.Screens.sideEfect.HomeSideEffect
 import com.example.movieapp.Utils.*
 import com.example.movieapp.models.Movie
 import kotlinx.coroutines.flow.Flow
@@ -106,9 +105,9 @@ fun HomeScreen (
                             top.linkTo(topGuideline2,16.dp)
 
                         }) {
-                    MovieList(modifier,R.string.popular, moviesState.upcomingMovies!!, moviesState) {
+                  //  MovieList(modifier,R.string.popular, moviesState.upcomingMovies!!, moviesState) {
 
-                     }
+                    // }
 
                 }
                // upcoming
@@ -120,8 +119,8 @@ fun HomeScreen (
                             top.linkTo(topGuideline3, 16.dp)
 
                         }) {
-                      MovieList(modifier,R.string.up_coming, moviesState.upcomingMovies!!, moviesState) {
-                     }
+                    //  MovieList(modifier,R.string.up_coming, moviesState.upcomingMovies!!, moviesState) {
+                     //}
                 }
 
 
@@ -218,20 +217,20 @@ fun MovieItem(
 
                 }
                 else->{
-                    LoadingImageShimmer(modifier = modifier,200.0,200.0)
+                    Column() {
+                    GlideImage(
+                        model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+                        contentDescription = "",
+                        modifier
+                            .height(200.dp)
+                            .fillMaxWidth(),
+                        contentScale = ContentScale.Fit
 
-//                    Column() {
-//                    GlideImage(
-//                        model = "${Constants.IMAGE_URL}${movie?.posterPath}",
-//                        contentDescription = "",
-//                        modifier
-//                            .height(200.dp)
-//                            .fillMaxWidth()
-//                    )
+                    )
 
 
 
-                    //}
+                    }
                 }
             }
         }
@@ -349,9 +348,11 @@ fun categoryItem(
                            contentDescription = "",
                            modifier
                                .height(200.dp)
-                               .requiredWidth(300.dp)
+                               .requiredWidth(300.dp),
+                           contentScale = ContentScale.Fit
                        )
-                     //  LoadImageFromNetWork(modifier = modifier, width = 200.0, height =200.0 )
+
+                 // LoadImageFromNetWork(modifier = modifier, movie!!.posterPath,width = 300.0, height =240.0 )
                    }
                }
 

@@ -1,4 +1,4 @@
-package com.example.movieapp.Screens.view.movieDetails
+package com.example.movieapp.Screens.movieDetails
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.movieapp.Screens.LoadingImageShimmer
-import com.skydoves.landscapist.coil.CoilImage
 
 @Composable
 fun MovieDetailsScreen(

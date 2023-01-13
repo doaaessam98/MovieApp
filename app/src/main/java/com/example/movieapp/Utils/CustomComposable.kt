@@ -11,33 +11,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.skydoves.landscapist.coil.CoilImage
 
 
-@Composable
-  fun LoadImageFromNetWork(modifier: Modifier, width:Double, height:Double){
-      CoilImage(
-          imageModel = { "" },
-          modifier = modifier,
-          loading = {
-              LoadingImageShimmer(modifier = modifier, width = width, height = height )
-          },
-          failure = {
-              //Text(text = "image request failed.")
-              // ImageBitmap.imageResource(R.drawable.placeholder)
-
-          },
-          success = {
-              Image(
-                  bitmap = it.imageBitmap!!,
-                  contentDescription = null,
-                  modifier = Modifier
-                      .width(128.dp)
-                      .height(128.dp)
-              )
-          })
-  }
+//@Composable
+//  fun LoadImageFromNetWork(modifier: Modifier,url:String ,width:Double, height:Double){
+//      CoilImage(
+//          imageModel = {"${Constants.IMAGE_URL}${url}"},
+//          modifier = modifier,
+//          loading = {
+//              LoadingImageShimmer(modifier = modifier, width = width, height = height )
+//          },
+//          failure = {
+//              //Text(text = "image request failed.")
+//              // ImageBitmap.imageResource(R.drawable.placeholder)
+//
+//          },
+//          success = {
+//              Image(
+//                  bitmap = it.imageBitmap!!,
+//                  contentDescription = null,
+//                  modifier = Modifier
+//                      .width(width.dp)
+//                      .height(height.dp),
+//                  contentScale = ContentScale.FillWidth
+//              )
+//          })
+//  }
 @SuppressLint("SuspiciousIndentation")
 @Composable
 fun LoadingImageShimmer(modifier: Modifier, width:Double, height:Double) {
