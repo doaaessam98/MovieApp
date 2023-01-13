@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.movieapp.Screens.home.Category
 import com.example.movieapp.models.Movie
 
 @Dao
@@ -16,8 +17,17 @@ interface MovieDao {
     @Query("SELECT * FROM movie ORDER BY popularity DESC")
     fun getMovieByPopularity(): PagingSource<Int, Movie>
 
+    @Query("SELECT * FROM movie WHERE type =:type")
+    fun getMoviesByType(type: String): PagingSource<Int, Movie>
+//    @Query("SELECT * FROM movie WHERE   ")
+//    fun getMovieByCategory(generId: Int): PagingSource<Int, Movie>
+
+
     @Query("DELETE FROM movie")
      fun clearMovies()
-    @Query("SELECT * FROM movie ORDER BY voteAverage DESC")
-    fun getMovieByTopRated(): PagingSource<Int, Movie>
+//    @Query("SELECT * FROM movie WHERE ca")
+//    fun FilterDataByCategory(category: Category): PagingSource<Int, Movie>
+
+//    @Query("SELECT * FROM movie ORDER BY voteAverage DESC")
+//    fun SearchInMovies(query: String): PagingSource<Int, Movie>
 }

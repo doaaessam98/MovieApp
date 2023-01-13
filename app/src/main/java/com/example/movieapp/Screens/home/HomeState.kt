@@ -1,4 +1,4 @@
-package com.example.movieapp.Screens.uiState
+package com.example.movieapp.Screens.home
 
 import androidx.paging.PagingData
 import com.example.movieapp.base.ViewState
@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.Flow
 //}
 
 data class HomeState(
-    val movies:Flow<PagingData<Movie>>?=null,
+    val popularMovies:Flow<PagingData<Movie>>?=null,
+    val trendingMovies:Flow<PagingData<Movie>>?=null,
+    val upcomingMovies:Flow<PagingData<Movie>>?=null,
     val isLoading: Boolean?=false,
 ) : ViewState

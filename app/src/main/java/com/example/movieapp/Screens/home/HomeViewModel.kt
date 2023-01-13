@@ -1,10 +1,8 @@
-package com.example.movieapp.Screens.view.home
+package com.example.movieapp.Screens.home
 
 import android.annotation.SuppressLint
 import androidx.lifecycle.viewModelScope
-import com.example.movieapp.Screens.intent.HomeIntent
 import com.example.movieapp.Screens.sideEfect.HomeSideEffect
-import com.example.movieapp.Screens.uiState.HomeState
 import com.example.movieapp.base.BaseViewModel
 import com.example.movieapp.base.Result
 import com.example.movieapp.data.repository.IRepository
@@ -16,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: IRepository)
-    :BaseViewModel<HomeIntent,HomeState,HomeSideEffect>() {
+    :BaseViewModel<HomeIntent, HomeState,HomeSideEffect>() {
 
     override fun initialState(): HomeState {
         return HomeState()
@@ -24,11 +22,11 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
 
     override fun handleEvents(event: HomeIntent) {
         when (event) {
-            is HomeIntent.FetchPopularMovies -> {
+            is HomeIntent.FetchMovies -> {
+
+                getTrendingMovies()
                 getPopularMovies()
-            }
-            is HomeIntent.FetchTopRateMovies -> {
-                getTopRateMovies()
+               getUpcomingMovie()
             }
             is HomeIntent.MovieSelected -> {
               setEffect { HomeSideEffect.Navigation.OpenMovieDetails(movie = event.movie!!) }
@@ -39,9 +37,53 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
 
     }
 
+    private fun getUpcomingMovie() {
+        viewModelScope.launch {
+            repository.getMoviesByType(ApiQuery.Upcoming()).let {response->
+                when (response) {
+                    is Result.Loading->{
+                        setState { copy(isLoading = true) }
+                    }
+                    is Result.Success -> {
+                        setState { copy( upcomingMovies= response.data,isLoading=false) }
+                    }
+                    is Result.Error -> {
+                        setEffect { HomeSideEffect.ShowLoadDataError(message = response.message!!)}
+
+
+                    }
+
+                }
+            }
+
+        }
+    }
+
+    private fun getTrendingMovies() {
+        viewModelScope.launch {
+            repository.getMoviesByType(ApiQuery.Trending()).let { response->
+                when (response) {
+                    is Result.Loading->{
+                        setState { copy(isLoading = true) }
+                    }
+                    is Result.Success -> {
+                        setState { copy( trendingMovies= response.data,isLoading=false) }
+                    }
+                    is Result.Error -> {
+                        setEffect { HomeSideEffect.ShowLoadDataError(message = response.message!!)}
+
+
+                    }
+
+                }
+            }
+
+        }
+    }
+
 
     init {
-        getPopularMovies()
+        setEvent(HomeIntent.FetchMovies)
 
     }
 
@@ -50,48 +92,30 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
         TODO("Not yet implemented")
     }
 
-    private fun getTopRateMovies() {
-        viewModelScope.launch {
-
-            repository.getMovies(ApiQuery.TopRated).let { response ->
-
-                when (response) {
-                    is Result.Loading-> {
-                        setState { copy(isLoading=true) }
-                    }
-                    is Result.Success -> {
-                        setState { copy(movies = response.data,isLoading=false) }
-                    }
-                    is Result.Error -> {
-                         setEffect { HomeSideEffect.ShowLoadDataError(message = response.message!!)}
-                    }
-
-                }
-            }
-        }
-    }
-
 
     @SuppressLint("SuspiciousIndentation")
     private fun getPopularMovies() {
         viewModelScope.launch {
-            repository.getMovies(ApiQuery.Popular).let {response->
+            repository.getMoviesByType(ApiQuery.Popular()).let {response->
                 when (response) {
                      is Result.Loading->{
                          setState { copy(isLoading = true) }
                      }
                     is Result.Success -> {
-                        setState { copy(movies = response.data,isLoading=false) }
+                        setState { copy(popularMovies = response.data,isLoading=false) }
                     }
                     is Result.Error -> {
                         setEffect { HomeSideEffect.ShowLoadDataError(message = response.message!!)}
 
+
                     }
+                } }
+        } }
 
-                }
-            }
+}
 
-        }
-    }
+
+enum class Category{
+    Action
 
 }

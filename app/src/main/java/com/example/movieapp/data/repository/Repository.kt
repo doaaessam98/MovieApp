@@ -12,7 +12,6 @@ import com.example.movieapp.base.Result
 import com.example.movieapp.models.ApiQuery
 import com.example.movieapp.models.Movie
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Response
 import javax.inject.Inject
 
 class Repository  @Inject constructor(
@@ -20,22 +19,17 @@ class Repository  @Inject constructor(
     private val localDataSource: ILocalDataSource
 
     ): IRepository {
-
-    override fun getMovies(query: ApiQuery): Result<Flow<PagingData<Movie>>> {
-
+    override fun getMoviesByType(query: ApiQuery): Result<Flow<PagingData<Movie>>> {
         val pagingSourceFactory ={
             when (query) {
-              is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMovieByPopularity()
-                is ApiQuery.TopRated -> localDataSource.databaseObject.reposDao().getMovieByTopRated()
+              is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+              is ApiQuery.Trending -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+              is ApiQuery.Upcoming -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
 
-            }
-
-    }
-
+            } }
         @OptIn(ExperimentalPagingApi::class)
         return  try {
-
-               val result= Pager(
+             val result= Pager(
                     config = PagingConfig(pageSize = NETWORK_PAGE_SIZE, enablePlaceholders = false),
                     remoteMediator = MovieRemoteMediator(
                         query,

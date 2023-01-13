@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.movieapp.navigation.AppNav
+import com.example.movieapp.navigation.HomeNavigationScreen
 import com.example.movieapp.ui.theme.MovieAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -27,7 +28,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
 
-        AppNav(modifier = Modifier, navController = rememberNavController())
+     HomeNavigationScreen()
+       // AppNav(modifier = Modifier, navController = rememberNavController())
                 }
             }
         }

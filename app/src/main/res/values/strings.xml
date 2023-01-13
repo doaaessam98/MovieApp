@@ -1,4 +1,16 @@
 <resources>
     <string name="app_name">MovieApp</string>
     <string name="movie_image">movie_image</string>
+    <string name="placeholder_search">search her</string>
+    <string name="fav_icon">favIcon</string>
+    <string name="top_rate">Popular</string>
+    <string name="category">Category</string>
+    <string name="no" />
+    <string name="home">Action</string>
+    <string name="action">Action</string>
+    <string name="see_all">See All</string>
+    <string name="favourite">Favourite</string>
+    <string name="up_coming">Upcoming</string>
+    <string name="trending">Trending</string>
+    <string name="popular">Pupular</string>
 </resources>

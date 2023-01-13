@@ -1,6 +1,7 @@
 package com.example.movieapp.models
 
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
@@ -15,8 +16,8 @@ data class Movie(
     val adult: Boolean =false,
 //    @SerializedName("backdrop_path")
 //    val backdropPath: String="",
-//    @SerialName("genre_ids")
-//    val genreIds: List<Int>,
+
+
     @PrimaryKey
     @SerializedName("id")
     val id: Int=0,
@@ -39,5 +40,14 @@ data class Movie(
     @SerializedName("vote_average")
     val voteAverage: Double=0.0,
     @SerializedName("vote_count")
-    val voteCount: Int=0
+    val voteCount: Int=0,
+    var type:String=""
 )
+
+ fun List<Movie>.toDatabaseEntity(type: String){
+    this.forEach{
+          it.type = type
+
+      }
+ }
+
