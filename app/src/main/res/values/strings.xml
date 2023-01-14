@@ -13,4 +13,11 @@
     <string name="up_coming">Upcoming</string>
     <string name="trending">Trending</string>
     <string name="popular">Pupular</string>
+    <string name="details_image_description">details_image_description</string>
+    <string name="btn_fav">Fav_button</string>
+    <string name="btn_back">back_to_home_from_details</string>
+    <string name="released_in">Release in</string>
+    <string name="btn_play">playVido_button</string>
+    <string name="btn_back_fav">back_button_fav</string>
+    <string name="btn_search_fav">search_icon_fav</string>
 </resources>

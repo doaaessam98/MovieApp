@@ -29,6 +29,8 @@ import com.example.movieapp.R
 import com.example.movieapp.Screens.LoadingImageShimmer
 import com.example.movieapp.Utils.*
 import com.example.movieapp.models.Movie
+import com.example.movieapp.navigation.HomeNavigationItem
+import com.example.movieapp.navigation.Screen
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
@@ -136,8 +138,11 @@ fun HomeScreen (
         sideEffect.onEach { effect ->
                when (effect) {
                    is HomeSideEffect.Navigation.OpenMovieDetails -> {
-
-
+                     navController.currentBackStackEntry?.savedStateHandle?.set(
+                           key = Constants.MOVIE_NAVIGATION_KEY,
+                           value =effect.movie
+                     )
+                       navController.navigate(Screen.Details.route)
                      }
                    is HomeSideEffect.ShowLoadDataError->{
                        scaffoldState.snackbarHostState.showSnackbar(
@@ -236,58 +241,7 @@ fun MovieItem(
     }
 
 
-@Composable
-fun Categories(modifier: Modifier) {
-    Box(modifier.fillMaxWidth()) {
-        Text(text = stringResource(id = R.string.category),
-            style = MaterialTheme.typography.h5,
-            color = Color.Blue,
-            modifier=modifier.align(Alignment.CenterStart))
-        Text(text = stringResource(id = R.string.see_all),
-            style = MaterialTheme.typography.subtitle1,
-            color = Color.Blue,
-            modifier=modifier.align(Alignment.CenterEnd))
-    }
 
-    val categories = listOf("Action")
-    val categoryIcon = listOf<Int>(R.drawable.ic_launcher_background)
-    LazyRow() {
-        itemsIndexed(categories){index,category ->
-            categoryItem(
-                modifier,
-                category,
-                categoryIcon[index],
-                {})
-
-        }}
-}
-@Composable
-fun categoryItem(
-    modifier: Modifier,
-    category: String,
-    icon:Int,
-    onCategoryClicked:(String)->Unit
- ) {
-    Column() {
-        Card(
-        elevation = 4.dp,
-        backgroundColor = Color.Blue,
-        shape = RoundedCornerShape(8.dp),
-           modifier = modifier
-               .size(48.dp)
-               .padding(12.dp)
-               .clickable { onCategoryClicked.invoke(category) },
-
-    ) {
-         Icon(painter =painterResource(icon), contentDescription =category)
-    }
-        Text(
-            text = category,
-            style = MaterialTheme.typography.h6,
-            color = Color.White, modifier = modifier.padding(8.dp)
-        )
-    }
-}
 @Composable
     fun SearchBar(
         modifier: Modifier,

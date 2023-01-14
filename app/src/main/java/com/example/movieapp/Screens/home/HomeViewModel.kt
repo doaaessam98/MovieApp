@@ -22,7 +22,6 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
     override fun handleEvents(event: HomeIntent) {
         when (event) {
             is HomeIntent.FetchMovies -> {
-
                 getTrendingMovies()
                 getPopularMovies()
                getUpcomingMovie()
@@ -85,13 +84,6 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
         setEvent(HomeIntent.FetchMovies)
 
     }
-
-
-    private fun navigateToMovieDetails(movie: Movie) {
-        TODO("Not yet implemented")
-    }
-
-
     @SuppressLint("SuspiciousIndentation")
     private fun getPopularMovies() {
         viewModelScope.launch {
@@ -113,8 +105,3 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
 
 }
 
-
-enum class Category{
-    Action
-
-}
