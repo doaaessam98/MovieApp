@@ -1,6 +1,7 @@
 package com.example.movieapp.Screens.favourite
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,17 +25,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieapp.R
 import com.example.movieapp.Screens.movieDetails.MovieDetailsScreen
+import com.example.movieapp.Screens.movieDetails.MovieDetailsViewModel
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
+import kotlinx.coroutines.NonDisposableHandle.parent
 
 @Composable
 fun FavouriteScreen(
@@ -51,7 +55,9 @@ fun FavouriteScreen(
          val topGuideline = createGuidelineFromTop(60.dp)
          val topGuideline2 = createGuidelineFromTop(80.dp)
          Box(
-             modifier.height(150.dp).fillMaxWidth()
+             modifier
+                 .height(150.dp)
+                 .fillMaxWidth()
                  .background(Color.Blue)
                  .constrainAs(topBox) {
                      top.linkTo(parent.top)
@@ -59,35 +65,63 @@ fun FavouriteScreen(
 
                  })
          {
-             IconButton(onClick = {},
+             ConstraintLayout(
                  modifier
-                     .align(Alignment.TopEnd)
-                    // .padding(end = 16.dp, top = 32.dp)
-                     //.size(32.dp)
+                     .fillMaxWidth()
+                     .padding(horizontal = 16.dp, vertical = 16.dp))
+             {
+                 val (back,fav_name,search) = createRefs()
+
+             IconButton(onClick = {},
+                 modifier.constrainAs(back){
+                     top.linkTo(parent.top)
+                     start.linkTo(parent.start)
+
+                 }
              ) {
-                     Icon(imageVector = Icons.Rounded.Search,
+                     Icon(imageVector = Icons.Rounded.ArrowBack,
                          tint = Color.White,
                          contentDescription = stringResource(id = R.string.btn_search_fav)
                      )
                  }
+
              IconButton(onClick = {},
-                 modifier
-                     .align(Alignment.TopStart)
-                     //.padding(start = 16.dp, top = 32.dp)
-                    // .size(32.dp)
+                 modifier.constrainAs(search){
+                     top.linkTo(parent.top)
+                     end.linkTo(parent.end)
+                 }
+
                  ) {
-                 Icon(imageVector = Icons.Rounded.ArrowBack,
+                 Icon(imageVector = Icons.Rounded.Search,
                      tint = Color.White,
                      contentDescription = stringResource(id = R.string.btn_back_fav)
                  )
              }
+
+             Text(text = stringResource(id = R.string.favourite) ,
+                 style = MaterialTheme.typography.h6,
+                 fontSize = 24.sp,
+                 fontWeight = FontWeight.Bold,
+                 color = Color.White,
+                 modifier=modifier.constrainAs(fav_name){
+                     top.linkTo(parent.top,4.dp)
+                     start.linkTo(back.end,8.dp)
+
+                 }
+             )
+
          }
-         LazyColumn(modifier.constrainAs(ContentBox){
-              top.linkTo(topGuideline)
-              start.linkTo(parent.start)
-         }){
+         }
+         LazyColumn(
+             modifier
+                 .fillMaxWidth()
+                 .padding(start = 16.dp)
+                 .constrainAs(ContentBox) {
+                     top.linkTo(topGuideline, 16.dp)
+                     start.linkTo(parent.start)
+                 }){
              items(favouriteMovies){movie->
-               GeneralMovieItem(modifier,movie) {
+               GeneralMovieItem(modifier,movie, onMovieClick = {}) {
 
                }
              }
@@ -100,77 +134,97 @@ fun FavouriteScreen(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun GeneralMovieItem(modifier: Modifier,movie: Movie, onMovieClick: (Movie) -> Unit) {
+fun GeneralMovieItem(
+    modifier: Modifier,movie: Movie,
+    onMovieClick: (Movie) -> Unit,
+    onRemoveFromFavClick:(Int)->Unit) {
     var rating: Float? by remember { mutableStateOf(movie?.voteAverage?.toFloat()) }
 
-    Box(){
-        ConstraintLayout() {
-            val (cardContent,movieImage) = createRefs()
-            val topGuideline = createGuidelineFromTop(400.dp)
-            val topGuideline2 = createGuidelineFromTop(80.dp)
-            Card(onClick = {}, 
-                elevation = 8.dp,
-                shape = RoundedCornerShape(20.dp),
-                modifier = modifier.constrainAs(cardContent){
-                 top.linkTo(parent.top,32.dp)
-                 start.linkTo(parent.start,16.dp)
-            }) {
-                 Column() {
-                     Text(text = movie!!.title,
-                         style = MaterialTheme.typography.h6,
-                         fontSize = 24.sp,
-                         fontWeight = FontWeight.Bold,
-                         color = Color.Black,
-                         modifier=modifier.padding(8.dp)
-                     )
-                     Row(modifier = modifier.padding(16.dp)) {
-                         Text(
-                             text = stringResource(id = R.string.released_in),
-                             style = MaterialTheme.typography.h6,
-                             color = Color.Blue,
-                             fontSize = 24.sp,
+    Box(
+        modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp)
+            ){
+        Card(onClick = {},
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp, end = 16.dp, top = 32.dp))
+        {
+            ConstraintLayout(modifier.padding(end = 4.dp)) {
+                val (name,releaseYear,rate) = createRefs()
+                Text(text = movie.title,
+                    style = MaterialTheme.typography.h6,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier= modifier
+                        .padding(8.dp)
+                        .constrainAs(name) {
+                            top.linkTo(parent.top)
+                            end.linkTo(parent.end)
+                        }
+                )
+                Row(modifier = modifier
+                    .padding(8.dp)
+                    .constrainAs(releaseYear) {
+                        top.linkTo(name.bottom)
+                        end.linkTo(parent.end)
+                    }) {
+                    Text(
+                        text = stringResource(id = R.string.released_in),
+                        style = MaterialTheme.typography.h6,
+                        color = Color.Blue,
+                        fontSize = 24.sp,
 
-                             )
-                         Text(
-                             text = movie!!.releaseDate,
-                             style = MaterialTheme.typography.h6,
-                             color = Color.Blue,
-                             fontSize = 24.sp,
-                             modifier = modifier.padding(start = 8.dp)
-                         )
-                     }
-                     Row(modifier = modifier.padding(16.dp)){
-                         Text(
-                             modifier = Modifier
-                                 .padding(end = 8.dp),
-                             fontSize = 24.sp,
-                             text = "${movie?.voteAverage}",
-                             color = Color.Yellow
-                         )
-                         (rating?.div(2))?.toFloat().let {
-                             RatingBar(
-                                 value = rating!!,
-                                 config = RatingBarConfig()
-                                     .style(RatingBarStyle.HighLighted),
-                                 onValueChange = {
-                                     rating = it
-                                 },
-                                 onRatingChanged = {}
-                             ) }
+                        )
+                    Text(
+                        text = movie.releaseDate,
+                        style = MaterialTheme.typography.h6,
+                        color = Color.Blue,
+                        fontSize = 24.sp,
+                        modifier = modifier.padding(start = 8.dp)
+                    )
+                }
 
-                     }
-                 }
-                
+                    (rating?.div(2))?.toFloat().let {
+                        RatingBar(
+                            value = rating!!,
+                            config = RatingBarConfig()
+                                .style(RatingBarStyle.HighLighted),
+                            onValueChange = {
+                                rating = it
+                            },
+                            onRatingChanged = {},
+                            modifier = modifier
+                                .padding(8.dp)
+                                .constrainAs(rate) {
+                                    top.linkTo(releaseYear.bottom)
+                                    start.linkTo(releaseYear.start)
+                                }
+                        ) }
+
+
+
+                }
+
+
             }
 
-            Box(
-                modifier
-                    .padding(16.dp)
-                    .constrainAs(movieImage) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                        bottom.linkTo(cardContent.bottom,16.dp)
-                    })
+             Icon(imageVector = Icons.Rounded.Favorite,
+                 tint = Color.Red,
+                 contentDescription = stringResource(id = R.string.btn_back_fav),
+                 modifier = modifier
+                     .align(Alignment.BottomEnd)
+                     .size(32.dp)
+                     .clickable {
+                         onRemoveFromFavClick.invoke(movie.id)
+                     })
+
+
+
+            Box(modifier = modifier.align(Alignment.TopStart))
             {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -179,15 +233,14 @@ fun GeneralMovieItem(modifier: Modifier,movie: Movie, onMovieClick: (Movie) -> U
                         .build(),
                     placeholder = painterResource(R.drawable.images),
                     contentDescription = stringResource(R.string.details_image_description),
-                    contentScale = ContentScale.FillBounds,
-                    modifier = modifier
-                        .height(100.dp)
-                        .width(100.dp)
+                     contentScale = ContentScale.FillBounds,
+                       modifier = modifier
+                           .height(140.dp)
+                           .width(140.dp)
                 )
             }
         }
     }
-}
 
 
 @Preview(showBackground = true, heightDp = 700)

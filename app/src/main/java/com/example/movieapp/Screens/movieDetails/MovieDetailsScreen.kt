@@ -32,19 +32,12 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieapp.R
 import com.example.movieapp.Screens.LoadingImageShimmer
-import com.example.movieapp.Screens.home.HomeSideEffect
 import com.example.movieapp.Utils.Constants
-import com.example.movieapp.Utils.MovieDetailsScreen1
 import com.example.movieapp.models.Genre
 import com.example.movieapp.models.Movie
-import com.example.movieapp.navigation.Screen
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-
-
 
 
 @Composable
