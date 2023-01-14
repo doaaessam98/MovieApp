@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieapp.R
+import com.example.movieapp.Screens.home.SearchBar
 import com.example.movieapp.Screens.movieDetails.MovieDetailsScreen
 import com.example.movieapp.Screens.movieDetails.MovieDetailsViewModel
 import com.example.movieapp.Utils.Constants
@@ -45,7 +47,7 @@ fun FavouriteScreen(
     modifier: Modifier,
     navController: NavHostController)
 {
-
+    var isSearch by rememberSaveable { mutableStateOf(false) }
     val movie  = Movie(title = "first move details", releaseDate ="2020" , isFav = false,voteAverage = 7.6,overview = "hello helloe hello,hello,hello,hello", video = true)
     val favouriteMovies = listOf<Movie>(movie,movie,movie,movie,movie,movie)
 
@@ -84,13 +86,14 @@ fun FavouriteScreen(
                          contentDescription = stringResource(id = R.string.btn_search_fav)
                      )
                  }
-
-             IconButton(onClick = {},
+        if(!isSearch){
+             IconButton(onClick = {
+                    isSearch = true
+             },
                  modifier.constrainAs(search){
                      top.linkTo(parent.top)
                      end.linkTo(parent.end)
                  }
-
                  ) {
                  Icon(imageVector = Icons.Rounded.Search,
                      tint = Color.White,
@@ -110,18 +113,23 @@ fun FavouriteScreen(
                  }
              )
 
+         }else{
+             SearchBar(modifier = modifier.padding(8.dp)) {
+
+             }
          }
+             }
          }
          LazyColumn(
              modifier
                  .fillMaxWidth()
-                 .padding(start = 16.dp)
+                 .padding(start = 16.dp, top = 16.dp)
                  .constrainAs(ContentBox) {
                      top.linkTo(topGuideline, 16.dp)
                      start.linkTo(parent.start)
                  }){
              items(favouriteMovies){movie->
-               GeneralMovieItem(modifier,movie, onMovieClick = {}) {
+               FavouriteMovieItem(modifier,movie, onMovieClick = {}) {
 
                }
              }
@@ -134,7 +142,7 @@ fun FavouriteScreen(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun GeneralMovieItem(
+fun FavouriteMovieItem(
     modifier: Modifier,movie: Movie,
     onMovieClick: (Movie) -> Unit,
     onRemoveFromFavClick:(Int)->Unit) {
