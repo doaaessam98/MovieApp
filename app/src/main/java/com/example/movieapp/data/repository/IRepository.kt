@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface IRepository {
 
 //     fun getMovies(query: ApiQuery): Result<Flow<PagingData<Movie>>>
-     fun getMoviesByType(query: ApiQuery): Result<Flow<PagingData<Movie>>>
+     fun getMoviesByType(query: ApiQuery):Flow<PagingData<Movie>>
+//fun getMoviesByType(query: ApiQuery):Result<Flow<PagingData<Movie>>>
 
 }

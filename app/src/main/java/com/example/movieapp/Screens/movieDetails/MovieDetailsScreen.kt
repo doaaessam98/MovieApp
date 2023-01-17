@@ -1,10 +1,15 @@
 package com.example.movieapp.Screens.movieDetails
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
@@ -48,66 +53,35 @@ fun MovieDetailsScreen(
     viewModel: MovieDetailsViewModel= hiltViewModel()
 ){
      val sideEffect =viewModel.effect
-
+    Log.e(TAG, "MovieDetailsScreen: ${movie?.overview}", )
     val isFav = rememberSaveable{ mutableStateOf(movie?.isFav) }
     var rating: Float? by remember { mutableStateOf(movie?.voteAverage?.toFloat()) }
     val genresState = viewModel.viewState.value
-    Box(modifier.background(Color.White)) {
+    Box(
+        modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            ) {
         ConstraintLayout() {
-            val (topBox,ContentBox,back, movieImage) = createRefs()
-            val topGuideline = createGuidelineFromTop(400.dp)
-            val topGuideline2 = createGuidelineFromTop(80.dp)
+            val (topBox, ContentBox, back, movieImage,movieImage1) = createRefs()
+            val topGuideline1 = createGuidelineFromTop(40.dp)
+            val topGuideline2= createGuidelineFromTop(170.dp)
 
-            Box(modifier.fillMaxWidth().background(
-                Color(0xFF44072D)
-            ).height(200.dp)
-                .constrainAs(topBox) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }) {
-                IconButton(onClick = {
-                    if(isFav.value==false) {
-                        // viewModel.setEvent(DetailsIntent.AddMovieToFavourite(movie = movie!!))
-                    }else{
-                        // viewModel.setEvent(DetailsIntent.RemoveMovieToFavourite(movie!!.id))
-                    }
-                    isFav.value=!isFav.value!!
-                },
-                    modifier
-                        .align(Alignment.TopEnd)
-                        .padding(end = 16.dp,top=32.dp).size(32.dp)) {
-                    if(isFav.value==true){
-                        Icon(imageVector = Icons.Rounded.Favorite ,
-                            tint = Color.Red ,
-                            contentDescription = stringResource(id = R.string.btn_fav)
-                        )
-                    }else{
-                        Icon(imageVector = Icons.Outlined.Favorite,
-                            tint = Color.White,
-                            contentDescription = stringResource(id = R.string.btn_fav)
-                        )
-                    }
 
-                }
-                IconButton(onClick = {
-                    // viewModel.setEvent(DetailsIntent.BackToHome)
-                },
-                    modifier
-                        .align(Alignment.TopStart)
-                        .padding(start = 16.dp,top=32.dp).size(32.dp)) {
-                    Icon(imageVector = Icons.Rounded.ArrowBack,
-                        tint = Color.White,
-                        contentDescription = stringResource(id = R.string.btn_back)
-                    )
-                }
-            }
+            Box(
+                modifier
+                    .fillMaxWidth()
+//                    .background(
+//                        Color(0xFF44072D)
+//                    )
+                    .height(300.dp)
+                    .constrainAs(topBox) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    })
+            {
 
-            Box(modifier.padding(16.dp).constrainAs(movieImage) {
-                top.linkTo(topGuideline2)
-                start.linkTo(parent.start,16.dp)
-                end.linkTo(parent.end,16.dp)
-            }) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data("${Constants.IMAGE_URL}${movie?.posterPath}")
@@ -115,98 +89,242 @@ fun MovieDetailsScreen(
                         .build(),
                     placeholder = painterResource(R.drawable.images),
                     contentDescription = stringResource(R.string.details_image_description),
-                    contentScale = ContentScale.FillBounds,
+                    contentScale = ContentScale.Crop,
                     modifier = modifier
-                        .height(300.dp)
                         .fillMaxWidth()
+                        .height(300.dp)
+
                 )
-                if(movie!!.video){
-                    IconButton(onClick = {},
+
+                if(movie!!.video) {
+                    IconButton(
+                        onClick = {},
                         modifier
                             .align(Alignment.Center)
                             .size(48.dp)
                             .background(color = Color.White, shape = RoundedCornerShape(12.dp))
                     ) {
-                        Icon(imageVector = Icons.Outlined.PlayArrow,
+                        Icon(
+                            imageVector = Icons.Outlined.PlayArrow,
                             tint = Color.Red,
-                            modifier = modifier.size(32.dp) ,
+                            modifier = modifier.size(32.dp),
                             contentDescription = stringResource(id = R.string.btn_play)
                         )
                     }
                 }
+                IconButton(
+                    onClick = {
+                        if(isFav.value==false) {
+                            viewModel.setEvent(DetailsIntent.AddMovieToFavourite(movie = movie!!))
+                        } else {
+                            viewModel.setEvent(DetailsIntent.RemoveMovieToFavourite(movie!!.id))
+                        }
+                        isFav.value = !isFav.value!!
+                    },
+                    modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 16.dp, top = 24.dp)
+                        .size(32.dp)
+                ) {
+                    if(isFav.value==true) {
+                        Icon(
+                            imageVector = Icons.Rounded.Favorite,
+                            tint = Color.Red,
+                            contentDescription = stringResource(id = R.string.btn_fav)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Favorite,
+                            tint = Color.White,
+                            contentDescription = stringResource(id = R.string.btn_fav)
+                        )
+                    }
+
+                }
+                IconButton(
+                    onClick = {
+                        viewModel.setEvent(DetailsIntent.BackToHome)
+                    },
+                    modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 16.dp, top = 16.dp)
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBack,
+                        tint = Color.White,
+                        contentDescription = stringResource(id = R.string.btn_back)
+                    )
+                }
 
             }
-            Column(modifier.background(Color.White).constrainAs(ContentBox) {
-                top.linkTo(movieImage.bottom,16.dp)
-                start.linkTo(parent.start,16.dp)
-                end.linkTo(parent.end,16.dp)
-            }) {
 
-                Text(text = movie!!.title,
-                    style = MaterialTheme.typography.h6,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier=modifier.padding(16.dp)
-                )
-                Row(modifier = modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.released_in),
-                        style = MaterialTheme.typography.h6,
-                        color = Color.Blue,
-                        fontSize = 24.sp,
 
+
+
+    Box(modifier = modifier
+        .verticalScroll(rememberScrollState())
+        .padding(horizontal = 16.dp)
+        .constrainAs(ContentBox) {
+            top.linkTo(topGuideline1)
+            start.linkTo(parent.start)
+        }) {
+
+        Card(
+                elevation = 8.dp,
+                modifier = modifier.padding(top = 200.dp)
+
+                    ) {
+
+        ConstraintLayout(modifier
+                        .padding(top = 16.dp, end = 8.dp, bottom = 32.dp)
+                        .background(Color.White),
+
+                       ) {
+               val (rate,release,vote,title,genre,overView) = createRefs()
+                   Row(modifier = modifier.padding(8.dp).constrainAs(rate){
+                         top.linkTo(parent.top,16.dp)
+                         end.linkTo(parent.end)
+                   }) {
+
+                       (rating?.div(2))?.toFloat().let {
+                            RatingBar(
+                                value = it!!,
+                                config = RatingBarConfig()
+                                    .style(RatingBarStyle.HighLighted),
+                                onValueChange = {
+
+                                },
+                                onRatingChanged = {},
+                            )
+                        }
+                        Text(
+                            modifier = modifier
+                                .padding(start = 4.dp),
+                            fontSize = 16.sp,
+                            text = "${movie?.voteAverage}",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
                         )
-                    Text(
-                        text = movie!!.releaseDate,
-                        style = MaterialTheme.typography.h6,
-                        color = Color.Blue,
-                        fontSize = 24.sp,
-                        modifier = modifier.padding(start = 8.dp)
-                    )
-                }
-                Row(modifier = modifier.padding(16.dp)){
-                    Text(
-                        modifier = Modifier
-                            .padding(end = 8.dp),
-                        fontSize = 24.sp,
-                        text = "${movie?.voteAverage}",
-                        color = Color.Yellow
-                    )
-                    (rating?.div(2))?.toFloat().let {
-                        RatingBar(
-                            value = rating!!,
-                            config = RatingBarConfig()
-                                .style(RatingBarStyle.HighLighted),
-                            onValueChange = {
-                                rating = it
-                            },
-                            onRatingChanged = {}
-                        ) }
 
-                }
+                    }
+
+                        Text(
+                            text = stringResource(id = R.string.released_in).plus(movie!!.releaseDate),
+                            style = MaterialTheme.typography.h6,
+                            color = Color.Black,
+                            fontSize = 16.sp,
+                            modifier = modifier.constrainAs(release){
+                                top.linkTo(rate.bottom,8.dp)
+                                start.linkTo(rate.start)
+                                end.linkTo(parent.end,4.dp)
+
+                            }
+                            )
+
+                    Text(
+                        text = stringResource(id = R.string.Votes).plus(movie!!.voteCount),
+                        style = MaterialTheme.typography.h6,
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = modifier.padding(8.dp).constrainAs(vote){
+                            top.linkTo(release.bottom,8.dp)
+                            start.linkTo(release.start)
+                        }
+                    )
+
+                    Text(
+                        text = movie!!.originalTitle,
+                        style = MaterialTheme.typography.h6,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        modifier=modifier.constrainAs(title){
+                            top.linkTo(vote.bottom,32.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+
+                    )
+
+
+
 //        genresState.let {
 //            when{
 //                it.loading->{
-//                    GenresLoading(modifier,movie.genreIds)
+//                   /// GenresLoading(modifier,movie.genreIds)
 //                }
 //                else->{
-//                    MovieGenres(modifier = modifier, genres = genresState.genres!!)
+//                    val genres = listOf<Genre>(Genre(1,"Action"),Genre(2,"Derama"),Genre(3,"Carton"))
+//                    LazyRow(
+//                        modifier=modifier.constrainAs(genre){
+//                            top.linkTo(title.bottom,16.dp)
+//                            start.linkTo(parent.start)
+//                            end.linkTo(parent.end)
+//                        }
+//                    ){
+//                        items(genres){genre->
+//                            GenreItem(modifier ,genre.name)
+//
+//                        }
+//                    }
 //                }
 //            }
 //
 //        }
-                Text(text = movie.overview,
-                    style = MaterialTheme.typography.subtitle1,
-                    color = Color.Blue,
-                    fontSize = 24.sp,
-                    modifier=modifier.padding(16.dp)
-                )
 
 
-            }}
+
+            val genres = listOf<Genre>(Genre(1,"Action"),Genre(2,"Derama"),Genre(3,"Carton"))
+            LazyRow(
+                modifier=modifier.constrainAs(genre){
+                    top.linkTo(title.bottom,16.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+            ){
+                items(genres){genre->
+                    GenreItem(modifier ,genre.name)
+
+                }
+            }
+                    Text(
+                        text = movie.overview,
+                        style = MaterialTheme.typography.body1,
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        modifier = modifier.padding(all =16.dp).constrainAs(overView){
+                            top.linkTo(genre.bottom)
+                            start.linkTo(parent.start,8.dp)
+
+                        }
+                    
+                    )
+
+
+                }
+            }
+
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data("${Constants.IMAGE_URL}${movie?.posterPath}")
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(R.drawable.images),
+            contentDescription = stringResource(R.string.details_image_description),
+            contentScale = ContentScale.FillBounds,
+            modifier = modifier
+                .align(Alignment.TopStart)
+                .padding(start = 8.dp, top = 170.dp)
+                .height(200.dp)
+                .width(130.dp)
+                .background(color = Color.Transparent, shape = RoundedCornerShape(4.dp))
+        )
+        }
     }
-
+    }
     LaunchedEffect(Constants.SIDE_EFFECTS_KEY) {
 //        sideEffect.onEach { effect ->
 //            when (effect) {
@@ -235,12 +353,6 @@ fun GenresLoading(modifier: Modifier, genres: List<Int>) {
 @Composable
 fun MovieGenres(modifier: Modifier,genres:List<Genre>) {
 
-    LazyRow(){
-        items(genres){genre->
-            GenreItem(modifier ,genre.name)
-
-        }
-    }
 
 
 
@@ -258,7 +370,7 @@ fun GenreItem(modifier:Modifier,name: String) {
               fontSize = 16.sp,
              style = MaterialTheme.typography.h5,
              color = Color.Blue,
-             modifier = modifier.padding(4.dp)
+             modifier = modifier.padding(8.dp)
              )
             }
 

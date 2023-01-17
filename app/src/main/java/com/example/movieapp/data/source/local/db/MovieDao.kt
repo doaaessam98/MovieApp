@@ -16,11 +16,12 @@ interface MovieDao {
     @Query("SELECT * FROM movie ORDER BY popularity DESC")
     fun getMovieByPopularity(): PagingSource<Int, Movie>
 
-    @Query("SELECT * FROM movie WHERE type =:type")
+    @Query("SELECT * FROM movie WHERE type =:type ORDER BY voteCount DESC")
     fun getMoviesByType(type: String): PagingSource<Int, Movie>
 //    @Query("SELECT * FROM movie WHERE   ")
 //    fun getMovieByCategory(generId: Int): PagingSource<Int, Movie>
-
+@Query("SELECT * FROM movie  ORDER BY voteAverage DESC")
+fun getMoviesByType1(): PagingSource<Int, Movie>
 
     @Query("DELETE FROM movie")
      fun clearMovies()
@@ -29,4 +30,8 @@ interface MovieDao {
 
 //    @Query("SELECT * FROM movie ORDER BY voteAverage DESC")
 //    fun SearchInMovies(query: String): PagingSource<Int, Movie>
+
+
+
+
 }

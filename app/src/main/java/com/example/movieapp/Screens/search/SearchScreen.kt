@@ -4,12 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -24,31 +23,38 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieapp.R
-import com.example.movieapp.Screens.favourite.FavouriteScreen
-import com.example.movieapp.Screens.home.SearchBar
+import com.example.movieapp.Screens.home.HomeSearchBar
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun SearchScreen(
     modifier: Modifier,
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: SearchViewModel= hiltViewModel()
 )
     {
         var isSearch by rememberSaveable { mutableStateOf(false) }
         val movie  = Movie(title = "first move details", releaseDate ="2020" , isFav = false,voteAverage = 7.6,overview = "hello helloe hello,hello,hello,hello", video = true)
-        val favouriteMovies = listOf<Movie>(movie,movie,movie,movie,movie,movie)
+      //  val favouriteMovies = listOf<Movie>(movie,movie,movie,movie,movie,movie)
+        val favouriteMovies = viewModel.viewState.value.MoviesResult?.collectAsLazyPagingItems()
+        val state =viewModel.viewState.value
+         val searchQuery = viewModel.searchQuery.collectAsState().value
 
         Box(){
-            ConstraintLayout() {
+            ConstraintLayout {
                 val (topBox,ContentBox,back, searchIcon) = createRefs()
                 val topGuideline = createGuidelineFromTop(60.dp)
                 val topGuideline2 = createGuidelineFromTop(80.dp)
@@ -64,33 +70,46 @@ fun SearchScreen(
                         })
                 {
                     IconButton(onClick = {},
-                            modifier.align(Alignment.TopStart).padding(start = 8.dp,top=32.dp)
+                        modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 8.dp, top = 32.dp)
                         ) {
                             Icon(imageVector = Icons.Rounded.ArrowBack,
                                 tint = Color.White,
                                 contentDescription = stringResource(id = R.string.btn_search_fav)
                             )
                         }
-                        SearchBar(modifier =  modifier.align(Alignment.TopEnd).padding(start = 48.dp, top = 16.dp, end = 16.dp)){
-
+                        SearchBar(modifier = modifier
+                            .align(Alignment.TopEnd)
+                            .padding(start = 48.dp, top = 16.dp, end = 16.dp),
+                            searchInput =searchQuery,
+                            onValueChange = {
+                                viewModel.setEvent(SearchIntent.FetchMoviesForSearch(it))
+                            })
                         }
-                        }
 
+                    when{
+                        state.isLoading!!->{
+                             CircularProgressIndicator()
+                        }else->{
 
-                LazyColumn(
-                    modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, top = 16.dp)
-                        .constrainAs(ContentBox) {
-                            top.linkTo(topGuideline, 16.dp)
-                            start.linkTo(parent.start)
-                        }){
-                    items(favouriteMovies){movie->
-                        GeneralMovieItem(modifier,movie) {
-
+                        LazyColumn(
+                            modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, top = 16.dp)
+                                .constrainAs(ContentBox) {
+                                    top.linkTo(topGuideline, 16.dp)
+                                    start.linkTo(parent.start)
+                                }){
+                            items(favouriteMovies!!){ movie->
+                                GeneralMovieItem(modifier,movie!!) {
+                                   viewModel.setEvent(SearchIntent.MovieSelected(movie))
+                                }
+                            }
                         }
                     }
                 }
+
 
             }
         }
@@ -101,12 +120,13 @@ fun SearchScreen(
 @Composable
 fun GeneralMovieItem(
     modifier: Modifier,movie: Movie,
-    onMovieClick: (Movie) -> Unit,
+    onMovieClick: () -> Unit,
    ) {
     var rating: Float? by remember { mutableStateOf(movie?.voteAverage?.toFloat()) }
 
     Box(
         modifier
+            .clickable { onMovieClick.invoke() }
             .fillMaxWidth()
             .padding(bottom = 32.dp)
     ){
@@ -192,6 +212,43 @@ fun GeneralMovieItem(
             )
         }
     }
+}
+
+
+@Composable
+fun SearchBar(
+    modifier: Modifier,
+     searchInput: String,
+    onValueChange:(String)->Unit
+
+) {
+    TextField(
+        value = searchInput,
+        onValueChange = {
+            onValueChange.invoke(it)
+        },
+
+        modifier = modifier
+            .background(color = Color.White, shape = RoundedCornerShape(50))
+            .fillMaxWidth()
+            .heightIn(min = 48.dp),
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        placeholder = {
+            Text(stringResource(R.string.placeholder_search))
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                tint = Color.DarkGray,
+                contentDescription = null
+            )
+        }
+
+    )
 }
 
 @Preview(showBackground = true, heightDp = 700)

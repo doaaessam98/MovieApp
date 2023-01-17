@@ -1,25 +1,25 @@
 package com.example.movieapp.Screens.home
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
@@ -29,7 +29,6 @@ import com.example.movieapp.R
 import com.example.movieapp.Screens.LoadingImageShimmer
 import com.example.movieapp.Utils.*
 import com.example.movieapp.models.Movie
-import com.example.movieapp.navigation.HomeNavigationItem
 import com.example.movieapp.navigation.Screen
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -45,7 +44,8 @@ fun HomeScreen (
     val trendingMovies = moviesState.trendingMovies?.collectAsLazyPagingItems()
     val popularMovies = moviesState.popularMovies?.collectAsLazyPagingItems()
     val upcomingMovies = moviesState.upcomingMovies?.collectAsLazyPagingItems()
-    val isLoading = moviesState.isLoading
+
+    val isLoading by remember { mutableStateOf(moviesState.isLoading) }
     val sideEffect =viewModel.effect
     val scaffoldState: ScaffoldState = rememberScaffoldState()
 
@@ -69,7 +69,7 @@ fun HomeScreen (
                         end.linkTo(parent.end)
                     }) {
                     ConstraintLayout(modifier.fillMaxWidth()) {
-                        SearchBar(modifier = modifier
+                        HomeSearchBar(modifier = modifier
                             .padding(horizontal = 16.dp)
                             .constrainAs(searchRef) {
                                 top.linkTo(parent.top, 24.dp)
@@ -96,39 +96,39 @@ fun HomeScreen (
                         top.linkTo(topGuideline, 16.dp)
 
                     }){
-                    TrendingMovies(modifier,R.string.trending,trendingMovies,isLoading) {movie ->
+                    TrendingMovies(modifier,R.string.trending,trendingMovies) {movie ->
                         viewModel.setEvent(HomeIntent.MovieSelected(movie = movie)) }
                    }
 
                 // popular
 
-                Column(
-                    modifier
-                        .padding(16.dp)
-                        .constrainAs(popularList) {
-                            start.linkTo(parent.start)
-                            top.linkTo(topGuideline2,16.dp)
-
-                        }) {
-                     MovieList(modifier,R.string.popular,popularMovies,isLoading) {movie->
-                       viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
-                    }
-
-                }
+//                Column(
+//                    modifier
+//                        .padding(16.dp)
+//                        .constrainAs(popularList) {
+//                            start.linkTo(parent.start)
+//                            top.linkTo(topGuideline2, 16.dp)
+//
+//                        }) {
+//                     MovieList(modifier,R.string.popular,popularMovies,isLoading) {movie->
+//                       viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
+//                    }
+//
+//                }
                // upcoming
-                Column(
-                    modifier
-                        .padding(16.dp)
-                        .constrainAs(upcomingList) {
-                            start.linkTo(parent.start)
-                            top.linkTo(topGuideline3, 16.dp)
-
-                        }) {
-                     MovieList(modifier,R.string.up_coming,upcomingMovies,isLoading) {movie->
-                         viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
-
-                     }
-                }
+//                Column(
+//                    modifier
+//                        .padding(16.dp)
+//                        .constrainAs(upcomingList) {
+//                            start.linkTo(parent.start)
+//                            top.linkTo(topGuideline3, 16.dp)
+//
+//                        }) {
+//                     MovieList(modifier,R.string.up_coming,upcomingMovies,isLoading) {movie->
+//                         viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
+//
+//                     }
+//                }
 
 
             }}
@@ -163,7 +163,6 @@ fun TrendingMovies(
     modifier: Modifier,
     title: Int,
     trendingMovies:LazyPagingItems<Movie>?,
-    isLoading: Boolean?,
     onMovieClicked: (Movie) -> Unit
 ) {
 
@@ -172,13 +171,45 @@ fun TrendingMovies(
         color = Color.White,
      )
 
-
-    LazyRow() {
+    LazyRow {
         items(trendingMovies!!) { movie ->
-            TrendMovieItem(modifier, movie, isLoading, onMovieClicked)
-        }
+            TrendMovieItem(modifier, movie,onMovieClicked)
+        } }
+//   when(val state = trendingMovies?.loadState?.refresh){
+//       is LoadState.Error -> {
+//           Log.e(TAG, "TrendingMovies:refresherroe", )
+//
+//       }
+//       is LoadState.Loading -> {
+//           Log.e(TAG, "TrendingMovies:refreshloading")
+//
+//       }
+//       else->{
+//           LazyRow {
+//               items(trendingMovies!!) { movie ->
+//                   TrendMovieItem(modifier, movie,onMovieClicked)
+//               } }
+//       }
+//      }
+
+//    when (val state = trendingMovies?.loadState?.append) {
+//        is LoadState.Error -> {
+//            Log.e(TAG, "TrendingMovies:appenderror", )
+//
+//            //state.error to get error message
+//        }
+//        is LoadState.Loading -> {
+//            Log.e(TAG, "TrendingMovies:appendloading", )
+//
+//        }
+    //    else->{
+//            LazyRow {
+//                items(trendingMovies!!) { movie ->
+//                    TrendMovieItem(modifier, movie,onMovieClicked)
+//                } }
+      //  }
+ //   }
     }
-}
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
@@ -194,9 +225,11 @@ fun MovieList(
         style = MaterialTheme.typography.h5,
         color = Color.Blue,
     )
-    LazyRow(){
-        items(movies!!){ movie->
-            MovieItem(modifier, movie!!, isLoading = isLoading,onMovieClicked)
+    if(isLoading==false) {
+        LazyRow() {
+            items(movies!!) { movie ->
+                MovieItem(modifier, movie!!, isLoading = isLoading, onMovieClicked)
+            }
         }
     }
 }
@@ -211,8 +244,8 @@ fun MovieItem(
 
     Card(
         modifier
-        .fillMaxWidth()
-        .padding(12.dp)
+            .fillMaxWidth()
+            .padding(12.dp)
             .clickable { onMovieClicked.invoke(movie) },
         elevation = 4.dp,
         shape = RoundedCornerShape(20.dp)
@@ -243,7 +276,7 @@ fun MovieItem(
 
 
 @Composable
-    fun SearchBar(
+    fun HomeSearchBar(
         modifier: Modifier,
         onSearchClick:()->Unit
     ) {
@@ -253,9 +286,10 @@ fun MovieItem(
 
             },
 
-            modifier = modifier.clickable {
-                onSearchClick.invoke()
-            }
+            modifier = modifier
+                .clickable {
+                    onSearchClick.invoke()
+                }
                 .background(color = Color.White, shape = RoundedCornerShape(50))
                 .fillMaxWidth()
                 .heightIn(min = 48.dp),
@@ -282,7 +316,6 @@ fun MovieItem(
     fun TrendMovieItem(
     modifier: Modifier,
     movie: Movie?,
-    isLoading:Boolean?,
     onMovieClicked:(Movie)-> Unit
 ) {
         Card(
@@ -294,23 +327,18 @@ fun MovieItem(
             shape = RoundedCornerShape(20.dp)
 
         ) {
-            when(isLoading){
-                true->{
-                    LoadingImageShimmer(modifier = modifier,200.0,200.0)
-                  }
-                else->{
                     GlideImage(
                            model = "${Constants.IMAGE_URL}${movie?.posterPath}",
                            contentDescription = "",
-                           modifier
-                               .height(200.dp)
-                               .requiredWidth(300.dp),
+                        modifier
+                            .height(200.dp)
+                            .requiredWidth(300.dp),
                            contentScale = ContentScale.Fit
                        )
                    }
                }
-        }
-    }
+
+
 
 
 

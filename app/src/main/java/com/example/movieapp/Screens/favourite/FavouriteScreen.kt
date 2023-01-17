@@ -4,11 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Search
@@ -29,27 +27,28 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieapp.R
-import com.example.movieapp.Screens.home.SearchBar
-import com.example.movieapp.Screens.movieDetails.MovieDetailsScreen
-import com.example.movieapp.Screens.movieDetails.MovieDetailsViewModel
+import com.example.movieapp.Screens.home.HomeSearchBar
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
-import kotlinx.coroutines.NonDisposableHandle.parent
 
 @Composable
 fun FavouriteScreen(
     modifier: Modifier,
-    navController: NavHostController)
-{
+    navController: NavHostController,
+    viewModel: FavouriteViewModel= hiltViewModel()
+ ){
     var isSearch by rememberSaveable { mutableStateOf(false) }
     val movie  = Movie(title = "first move details", releaseDate ="2020" , isFav = false,voteAverage = 7.6,overview = "hello helloe hello,hello,hello,hello", video = true)
-    val favouriteMovies = listOf<Movie>(movie,movie,movie,movie,movie,movie)
+    val favouriteMovies = viewModel.viewState.value.FavouriteMovies?.collectAsLazyPagingItems()
+   // val favouriteMovies = listOf<Movie>(movie,movie,movie,movie,movie,movie)
 
  Box(){
      ConstraintLayout() {
@@ -114,7 +113,7 @@ fun FavouriteScreen(
              )
 
          }else{
-             SearchBar(modifier = modifier.padding(8.dp)) {
+             HomeSearchBar(modifier = modifier.padding(8.dp)) {
 
              }
          }
@@ -128,10 +127,11 @@ fun FavouriteScreen(
                      top.linkTo(topGuideline, 16.dp)
                      start.linkTo(parent.start)
                  }){
-             items(favouriteMovies){movie->
-               FavouriteMovieItem(modifier,movie, onMovieClick = {}) {
-
-               }
+             items(favouriteMovies!!){movie->
+               FavouriteMovieItem(modifier,movie!!,
+                   onMovieClick = { viewModel.setEvent(FavouriteIntent.OpenDetails(movie))},
+                   onRemoveFromFavClick = {viewModel.setEvent(FavouriteIntent.RemoveMovieFromFavourite(movie.id))}
+               )
              }
          }
 
@@ -140,21 +140,21 @@ fun FavouriteScreen(
 
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FavouriteMovieItem(
     modifier: Modifier,movie: Movie,
-    onMovieClick: (Movie) -> Unit,
-    onRemoveFromFavClick:(Int)->Unit) {
-    var rating: Float? by remember { mutableStateOf(movie?.voteAverage?.toFloat()) }
+    onMovieClick: () -> Unit,
+    onRemoveFromFavClick:()->Unit) {
+    var rating: Float? by remember { mutableStateOf(movie.voteAverage.toFloat()) }
 
     Box(
         modifier
             .fillMaxWidth()
-            .padding(bottom = 32.dp)
+            .padding(bottom = 32.dp).clickable {
+                onMovieClick.invoke()
+            }
             ){
-        Card(onClick = {},
-                elevation = 4.dp,
+        Card(elevation = 4.dp,
                 shape = RoundedCornerShape(16.dp),
                 modifier = modifier
                     .fillMaxWidth()
@@ -227,7 +227,7 @@ fun FavouriteMovieItem(
                      .align(Alignment.BottomEnd)
                      .size(32.dp)
                      .clickable {
-                         onRemoveFromFavClick.invoke(movie.id)
+                          onRemoveFromFavClick.invoke()
                      })
 
 

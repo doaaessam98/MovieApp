@@ -11,6 +11,7 @@ import com.example.movieapp.models.*
 
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class MovieRemoteMediator(
@@ -47,7 +48,7 @@ class MovieRemoteMediator(
                    response = service.getPopularMovies(page = page, itemsPerPage = state.config.pageSize)
                }
                is ApiQuery.Trending->{
-                   response = service.getTrendingMovies(page = page, itemsPerPage = state.config.pageSize)
+                   response = service.getPopularMovies(page = page, itemsPerPage = state.config.pageSize)
                }
                 is ApiQuery.Upcoming->{
                     response = service.getUpcomingMovies(page = page, itemsPerPage = state.config.pageSize)
@@ -65,7 +66,7 @@ class MovieRemoteMediator(
                      RemoteKeys(MovieId = movie.id, prevKey = prevKey, nextKey = nextKey)
                  }
                  moviesDatabase.remoteKeysDao().insertAll(keys)
-                 movies.toDatabaseEntity(query.query)
+                // movies.toDatabaseEntity(query.query)
                  moviesDatabase.reposDao().insertAll(movies)
                  Log.e(TAG, "load: ${page}.......${movies.size}", )
 
@@ -102,4 +103,5 @@ class MovieRemoteMediator(
             }
         }
     }
+
 }

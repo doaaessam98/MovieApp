@@ -1,6 +1,7 @@
 package com.example.movieapp.Screens.home
 
 import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
 import com.example.movieapp.base.ViewState
 import com.example.movieapp.models.Movie
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 
 data class HomeState(
     val popularMovies:Flow<PagingData<Movie>>?=null,
-    val trendingMovies:Flow<PagingData<Movie>>?=null,
+    val trendingMovies: Flow<PagingData<Movie>>?=null,
     val upcomingMovies:Flow<PagingData<Movie>>?=null,
-    val isLoading: Boolean?=false,
+    val isLoading: Boolean?=true,
 ) : ViewState

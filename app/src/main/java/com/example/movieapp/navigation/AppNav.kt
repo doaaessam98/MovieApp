@@ -21,6 +21,7 @@ import com.example.movieapp.Screens.home.HomeScreen
 import com.example.movieapp.Screens.movieDetails.MovieDetailsScreen
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
+import okhttp3.internal.wait
 
 @Composable
 fun AppNav(modifier:Modifier,navController:NavHostController){
@@ -39,12 +40,10 @@ fun AppNav(modifier:Modifier,navController:NavHostController){
             CategoryScreen(modifier = modifier, navController = navController)
         }
         composable(route=Screen.Details.route){
-             var movie:Movie?=null
-            LaunchedEffect(key1 =it){
-                movie =navController.previousBackStackEntry?.savedStateHandle?.get<Movie>(
+             var movie =navController.previousBackStackEntry?.savedStateHandle?.get<Movie>(
                     key = Constants.MOVIE_NAVIGATION_KEY)
-            }
-            Log.e(TAG, "AppNav: ${movie?.title}", )
+
+            Log.e(TAG, "AppNav nnbnbn: ${movie?.title}", )
               MovieDetailsScreen(modifier = modifier, movie,navHostController = navController)
            }
 

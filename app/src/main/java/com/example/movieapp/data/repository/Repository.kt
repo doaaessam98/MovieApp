@@ -19,17 +19,16 @@ class Repository  @Inject constructor(
     private val localDataSource: ILocalDataSource
 
     ): IRepository {
-    override fun getMoviesByType(query: ApiQuery): Result<Flow<PagingData<Movie>>> {
+    override fun getMoviesByType(query: ApiQuery): Flow<PagingData<Movie>>{
         val pagingSourceFactory ={
             when (query) {
               is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
-              is ApiQuery.Trending -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+              is ApiQuery.Trending -> localDataSource.databaseObject.reposDao().getMoviesByType1()
               is ApiQuery.Upcoming -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
-
+              is ApiQuery.Search ->localDataSource.databaseObject.reposDao().getMoviesByType(query.searchQuery)
             } }
         @OptIn(ExperimentalPagingApi::class)
-        return  try {
-             val result= Pager(
+        return  Pager(
                     config = PagingConfig(pageSize = NETWORK_PAGE_SIZE, enablePlaceholders = false),
                     remoteMediator = MovieRemoteMediator(
                         query,
@@ -38,11 +37,33 @@ class Repository  @Inject constructor(
                     ),
                     pagingSourceFactory = pagingSourceFactory
                 ).flow
-                Result.Success(result)
-            }catch (e:Exception){
-            Result.Error(e.localizedMessage)
-            }
+
+
     }
+//override fun getMoviesByType(query: ApiQuery): Result<Flow<PagingData<Movie>>> {
+//    val pagingSourceFactory ={
+//        when (query) {
+//            is ApiQuery.Popular -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+//            is ApiQuery.Trending -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+//            is ApiQuery.Upcoming -> localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+//           is ApiQuery.Search->localDataSource.databaseObject.reposDao().getMoviesByType(query.query)
+//        } }
+//    @OptIn(ExperimentalPagingApi::class)
+//    return  try {
+//        val result= Pager(
+//            config = PagingConfig(pageSize = NETWORK_PAGE_SIZE, enablePlaceholders = false),
+//            remoteMediator = MovieRemoteMediator(
+//                query,
+//                remoteDataSource.movieApiServiceObject,
+//                localDataSource.databaseObject
+//            ),
+//            pagingSourceFactory = pagingSourceFactory
+//        ).flow
+//        Result.Success(result)
+//    }catch (e:Exception){
+//        Result.Error(e.localizedMessage)
+//    }
+//}
 
 
 }
