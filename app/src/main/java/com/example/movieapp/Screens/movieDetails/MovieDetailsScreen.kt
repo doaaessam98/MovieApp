@@ -1,5 +1,6 @@
 package com.example.movieapp.Screens.movieDetails
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
 
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun MovieDetailsScreen(
     modifier: Modifier,
