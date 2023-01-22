@@ -1,15 +1,11 @@
 package com.example.movieapp.Screens.home
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.util.Log
-import androidx.lifecycle.viewModelScope
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.movieapp.base.BaseViewModel
 import com.example.movieapp.data.repository.IRepository
-import com.example.movieapp.models.ApiQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +20,8 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
         when (event) {
             is HomeIntent.FetchMovies -> {
                getTrendingMovies()
+                getPopularMovies()
+                getUpcomingMovie()
 
 
             }
@@ -31,36 +29,24 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
               setEffect { HomeSideEffect.Navigation.OpenMovieDetails(movie = event.movie!!) }
 
             }
-            else -> {}
+            is HomeIntent.OpenSearchForMovie->{
+                Log.e(TAG, "handleEvents: search", )
+                setEffect { HomeSideEffect.Navigation.OpenSearch}
+            }
         }
 
     }
 
-    private suspend fun getAllData(){
 
-        viewModelScope.async {
-            HomeState(isLoading = true)
-            Log.e(TAG, "getAllData: start", )
-           val a=  getTrendingMovies()
-            Log.e(TAG, "getAllData: A", )
-
-
-
-        }.await()
-
-
+    private  fun getUpcomingMovie(){
+        repository.getUpcomingMovies().let {
+            setState { copy( upcomingMovies= it,isLoading=false) }
+        }
     }
 
-//    private  fun getUpcomingMovie(): Flow<PagingData<Movie>> {
-//        return   repository.getMoviesByType(ApiQuery.Upcoming())
-//    }
-//
     private  fun getTrendingMovies(){
-       repository.getMoviesByType(ApiQuery.Trending()).let {
-
-               setState { copy( trendingMovies= it,isLoading=false) }
-
-
+       repository.getTrendMovies().let {
+             setState { copy( trendingMovies= it,isLoading=false) }
        }
     }
 
@@ -93,10 +79,12 @@ class HomeViewModel @Inject constructor(private val repository: IRepository)
 
     }
 
-   // @SuppressLint("SuspiciousIndentation")
-//    private   fun getPopularMovies(): Flow<PagingData<Movie>> {
-//        return  repository.getMoviesByType(ApiQuery.Popular())
-//    }
+    @SuppressLint("SuspiciousIndentation")
+    private   fun getPopularMovies() {
+          repository.getPopularMovies().let {
+            setState { copy( popularMovies= it,isLoading=false) }
+        }
+    }
 
 
 }

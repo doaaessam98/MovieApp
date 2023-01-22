@@ -7,7 +7,7 @@ package com.example.movieapp.models
 //
 //}
 
-sealed class ApiQuery(open val query: String){
+sealed class ApiQuery(val query: String){
     class Popular() : ApiQuery("popular")
     class Trending():ApiQuery("trending")
     class Upcoming():ApiQuery("upcoming")

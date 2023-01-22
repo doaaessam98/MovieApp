@@ -21,4 +21,5 @@
     <string name="btn_back_fav">back_button_fav</string>
     <string name="btn_search_fav">search_icon_fav</string>
     <string name="Votes">vote :  </string>
+    <string name="loading_error_message">Some thing error happen</string>
 </resources>

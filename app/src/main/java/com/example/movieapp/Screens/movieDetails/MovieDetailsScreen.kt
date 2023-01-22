@@ -1,10 +1,7 @@
 package com.example.movieapp.Screens.movieDetails
 
 import android.annotation.SuppressLint
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -13,12 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +39,7 @@ import com.example.movieapp.models.Movie
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
+import kotlinx.coroutines.flow.onEach
 
 
 @SuppressLint("SuspiciousIndentation")
@@ -55,8 +51,7 @@ fun MovieDetailsScreen(
     viewModel: MovieDetailsViewModel= hiltViewModel()
 ){
      val sideEffect =viewModel.effect
-    Log.e(TAG, "MovieDetailsScreen: ${movie?.overview}", )
-    val isFav = rememberSaveable{ mutableStateOf(movie?.isFav) }
+    val isFav = viewModel.viewState.value.isFav
     var rating: Float? by remember { mutableStateOf(movie?.voteAverage?.toFloat()) }
     val genresState = viewModel.viewState.value
     Box(
@@ -116,31 +111,23 @@ fun MovieDetailsScreen(
                 }
                 IconButton(
                     onClick = {
-                        if(isFav.value==false) {
-                            viewModel.setEvent(DetailsIntent.AddMovieToFavourite(movie = movie!!))
+                        if(!isFav) {
+                            viewModel.setEvent(DetailsIntent.AddMovieToFavourite(movie = movie))
                         } else {
-                            viewModel.setEvent(DetailsIntent.RemoveMovieToFavourite(movie!!.id))
+                            viewModel.setEvent(DetailsIntent.RemoveMovieToFavourite(movie.id))
                         }
-                        isFav.value = !isFav.value!!
                     },
                     modifier
                         .align(Alignment.TopEnd)
                         .padding(end = 16.dp, top = 24.dp)
                         .size(32.dp)
                 ) {
-                    if(isFav.value==true) {
-                        Icon(
+                    Icon(
                             imageVector = Icons.Rounded.Favorite,
-                            tint = Color.Red,
+                            tint = if(isFav)Color.Red else Color.White,
                             contentDescription = stringResource(id = R.string.btn_fav)
                         )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Outlined.Favorite,
-                            tint = Color.White,
-                            contentDescription = stringResource(id = R.string.btn_fav)
-                        )
-                    }
+
 
                 }
                 IconButton(
@@ -327,18 +314,7 @@ fun MovieDetailsScreen(
         }
     }
     }
-    LaunchedEffect(Constants.SIDE_EFFECTS_KEY) {
-//        sideEffect.onEach { effect ->
-//            when (effect) {
-//                is DetailsSideEffect.NavigationToHome -> {
-//                    navHostController.popBackStack()
-//
-//                }
-//
-//
-//            }
-        //   }.collect()
-    }
+
 
 
 }

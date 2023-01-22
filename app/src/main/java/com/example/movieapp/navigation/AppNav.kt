@@ -19,6 +19,7 @@ import com.example.movieapp.Screens.category.CategoryScreen
 import com.example.movieapp.Screens.favourite.FavouriteScreen
 import com.example.movieapp.Screens.home.HomeScreen
 import com.example.movieapp.Screens.movieDetails.MovieDetailsScreen
+import com.example.movieapp.Screens.search.SearchScreen
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import okhttp3.internal.wait
@@ -40,12 +41,14 @@ fun AppNav(modifier:Modifier,navController:NavHostController){
             CategoryScreen(modifier = modifier, navController = navController)
         }
         composable(route=Screen.Details.route){
-             var movie =navController.previousBackStackEntry?.savedStateHandle?.get<Movie>(
+             val movie =navController.previousBackStackEntry?.savedStateHandle?.get<Movie>(
                     key = Constants.MOVIE_NAVIGATION_KEY)
-
-            Log.e(TAG, "AppNav nnbnbn: ${movie?.title}", )
-              MovieDetailsScreen(modifier = modifier, movie,navHostController = navController)
+             MovieDetailsScreen(modifier = modifier, movie,navHostController = navController)
            }
+
+        composable(route=Screen.Search.route){
+            SearchScreen(modifier = modifier,navController = navController)
+        }
 
 
     }
@@ -74,8 +77,9 @@ sealed class HomeNavigationItem(
 
 }
     sealed class Screen(val route: String){
+        object Search:Screen(route = "search_screen")
        object Details:Screen(route = "details_screen")
-        object  Splash:Screen(route = "splash_screen")
+        object Splash:Screen(route = "splash_screen")
 
     }
 

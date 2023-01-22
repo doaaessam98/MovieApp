@@ -7,5 +7,6 @@ sealed class HomeSideEffect :ViewSideEffect{
   data class ShowLoadDataError(val message:String): HomeSideEffect()
    sealed class Navigation : HomeSideEffect(){
       data class OpenMovieDetails(val movie: Movie): Navigation()
+       object   OpenSearch: Navigation()
    }
 }

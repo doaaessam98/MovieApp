@@ -7,6 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 
 data class FavouriteState(
-    val FavouriteMovies: Flow<PagingData<Movie>>?=null,
-    val isLoading: Boolean?=false,
+     val FavouriteMovies: Flow<List<Movie>>?=null,
+     val isLoading: Boolean?=false,
 ) : ViewState

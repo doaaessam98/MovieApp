@@ -25,7 +25,7 @@ object DataBaseModule {
 
     @Provides
     @Singleton
-    fun provideRepoDataBase(db: MoviesDatabase): MovieDao =db.reposDao()
+    fun provideRepoDataBase(db: MoviesDatabase): MovieDao =db.movieDao()
 
     @Provides
     @Singleton

@@ -2,6 +2,7 @@ package com.example.movieapp.Utils
 
 object Constants {
 
+    const val RECOMMENDATION_MOVIE_ID: Int = 1234
     const val MOVIE_NAVIGATION_KEY: String= "movie"
     val SIDE_EFFECTS_KEY:String= "side-effects_key"
     const val API_KEY = "f9fc533fed8b8ec1d6bf63de7566c3a9"

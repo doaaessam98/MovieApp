@@ -132,6 +132,9 @@ dependencies {
     //implementation 'com.github.a914-gowtham:compose-ratingbar:1.2.4'
     implementation 'io.github.a914-gowtham:compose-ratingbar:1.2.3'
 
+    implementation 'androidx.ui:ui-layout:0.1.0-dev02'
+    implementation 'androidx.ui:ui-material:0.1.0-dev02'
+    implementation 'androidx.ui:ui-tooling:0.1.0-dev02'
 
 }
 // Allow references to generated code

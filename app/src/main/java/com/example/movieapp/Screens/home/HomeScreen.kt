@@ -6,16 +6,23 @@ import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -23,11 +30,13 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.movieapp.R
 import com.example.movieapp.Screens.LoadingImageShimmer
-import com.example.movieapp.Utils.*
+import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import com.example.movieapp.navigation.Screen
 import kotlinx.coroutines.flow.collect
@@ -40,7 +49,7 @@ fun HomeScreen (
     viewModel: HomeViewModel = hiltViewModel(),
     navController:NavHostController)
 {
-   val moviesState = viewModel.viewState.value
+    val moviesState = viewModel.viewState.value
     val trendingMovies = moviesState.trendingMovies?.collectAsLazyPagingItems()
     val popularMovies = moviesState.popularMovies?.collectAsLazyPagingItems()
     val upcomingMovies = moviesState.upcomingMovies?.collectAsLazyPagingItems()
@@ -76,7 +85,8 @@ fun HomeScreen (
                                 end.linkTo(parent.end)
                                 start.linkTo(parent.start)
                             }) {
-
+                            Log.e(TAG, "HomeScreen: search", )
+                           viewModel.setEvent(HomeIntent.OpenSearchForMovie)
                         }
                     }
 
@@ -86,8 +96,6 @@ fun HomeScreen (
                 // trending
                 val (trendingList, popularList,upcomingList) = createRefs()
                 val topGuideline = createGuidelineFromTop(80.dp)
-                val topGuideline2 = createGuidelineFromTop(350.dp)
-                val topGuideline3 = createGuidelineFromTop(630.dp)
 
 
                 Column (
@@ -100,35 +108,37 @@ fun HomeScreen (
                         viewModel.setEvent(HomeIntent.MovieSelected(movie = movie)) }
                    }
 
+
+                // upcoming
+                Column(
+                    modifier
+                        .padding(16.dp)
+                        .constrainAs(upcomingList) {
+                            start.linkTo(parent.start)
+                            top.linkTo(trendingList.bottom)
+
+                        }) {
+                        UpcomingMovieList(modifier,R.string.up_coming,upcomingMovies,isLoading) {movie->
+                        viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
+
+                    }
+                }
                 // popular
 
-//                Column(
-//                    modifier
-//                        .padding(16.dp)
-//                        .constrainAs(popularList) {
-//                            start.linkTo(parent.start)
-//                            top.linkTo(topGuideline2, 16.dp)
-//
-//                        }) {
-//                     MovieList(modifier,R.string.popular,popularMovies,isLoading) {movie->
-//                       viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
-//                    }
-//
-//                }
-               // upcoming
-//                Column(
-//                    modifier
-//                        .padding(16.dp)
-//                        .constrainAs(upcomingList) {
-//                            start.linkTo(parent.start)
-//                            top.linkTo(topGuideline3, 16.dp)
-//
-//                        }) {
-//                     MovieList(modifier,R.string.up_coming,upcomingMovies,isLoading) {movie->
-//                         viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
-//
-//                     }
-//                }
+                Column(
+                    modifier
+                        .padding(16.dp)
+                        .constrainAs(popularList) {
+                            start.linkTo(parent.start)
+                            top.linkTo(upcomingList.bottom)
+
+                        }) {
+                     PopularMovieList(modifier,R.string.popular,popularMovies) { movie->
+                       viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
+                    }
+
+                }
+
 
 
             }}
@@ -142,13 +152,19 @@ fun HomeScreen (
                            key = Constants.MOVIE_NAVIGATION_KEY,
                            value =effect.movie
                      )
-                       navController.navigate(Screen.Details.route)
+                       navController.navigate(Screen.Details.route){
+                               
+                       }
                      }
                    is HomeSideEffect.ShowLoadDataError->{
                        scaffoldState.snackbarHostState.showSnackbar(
                            message = effect.message,
                            duration = SnackbarDuration.Long
                        )
+                   }
+                   is HomeSideEffect.Navigation.OpenSearch->{
+                       Log.e(TAG, "HomeScreen: searc effect", )
+                       navController.navigate(Screen.Search.route)
                    }
 
 
@@ -173,47 +189,114 @@ fun TrendingMovies(
 
     LazyRow {
         items(trendingMovies!!) { movie ->
-            TrendMovieItem(modifier, movie,onMovieClicked)
-        } }
-//   when(val state = trendingMovies?.loadState?.refresh){
-//       is LoadState.Error -> {
-//           Log.e(TAG, "TrendingMovies:refresherroe", )
-//
-//       }
-//       is LoadState.Loading -> {
-//           Log.e(TAG, "TrendingMovies:refreshloading")
-//
-//       }
-//       else->{
-//           LazyRow {
-//               items(trendingMovies!!) { movie ->
-//                   TrendMovieItem(modifier, movie,onMovieClicked)
-//               } }
-//       }
-//      }
+            TrendMovieItem(modifier, movie!!,onMovieClicked)
+            Divider()
+        }
 
-//    when (val state = trendingMovies?.loadState?.append) {
-//        is LoadState.Error -> {
-//            Log.e(TAG, "TrendingMovies:appenderror", )
-//
-//            //state.error to get error message
-//        }
-//        is LoadState.Loading -> {
-//            Log.e(TAG, "TrendingMovies:appendloading", )
-//
-//        }
-    //    else->{
-//            LazyRow {
-//                items(trendingMovies!!) { movie ->
-//                    TrendMovieItem(modifier, movie,onMovieClicked)
-//                } }
-      //  }
- //   }
+        val loadState = trendingMovies.loadState.mediator
+        item {
+            if (loadState?.refresh == LoadState.Loading) {
+
+                Box(
+                    modifier = Modifier
+                        .fillParentMaxSize(),
+                    ) {
+                    LoadingImageShimmer(modifier = modifier, width = 300.0, height =200.0 )
+                    CircularProgressIndicator(
+                        modifier.align(Alignment.Center),
+                        color = MaterialTheme.colors.primary)
+                }
+            }
+
+            if (loadState?.append == LoadState.Loading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = Color.Red)
+                }
+            }
+
+            if (loadState?.refresh is LoadState.Error || loadState?.append is LoadState.Error) {
+                val isPaginatingError = (loadState.append is LoadState.Error) || trendingMovies.itemCount > 1
+                val error = if (loadState.append is LoadState.Error)
+                    (loadState.append as LoadState.Error).error
+                else
+                    (loadState.refresh as LoadState.Error).error
+
+                val modifier = if (isPaginatingError) {
+                    Modifier.padding(8.dp)
+                } else {
+                    Modifier.fillParentMaxSize()
+                }
+                Column(
+                    modifier = modifier.fillParentMaxHeight().padding(top=32.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (!isPaginatingError) {
+                        Icon(
+                            modifier = Modifier
+                                .size(64.dp),
+                            imageVector = Icons.Rounded.Warning, contentDescription = null
+                        )
+                    }
+
+                    Text(
+                        modifier = Modifier
+                            .padding(8.dp),
+                        text = stringResource(id = R.string.loading_error_message),
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+
+                    )
+
+                    Button(
+                        onClick = {
+                            trendingMovies.refresh()
+                        },
+                        content = {
+                            Text(text = "Refresh")
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = MaterialTheme.colors.primary,
+                            contentColor = Color.White,
+                        )
+                    )
+                }
+            }
+        }
+
+    }
+
+
     }
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun MovieList(
+fun PopularMovieList(
+    modifier: Modifier,
+    title: Int,
+    movies:LazyPagingItems<Movie>?,
+    onMovieClicked: (Movie) -> Unit
+) {
+    Text(
+        text = stringResource(id = title),
+        style = MaterialTheme.typography.h5,
+        color = Color.Blue,
+    )
+    if(movies!=null) {
+        LazyRow(modifier = modifier.padding(top = 8.dp)) {
+            items(movies) { movie ->
+                PopularMovieItem(modifier, movie!!, onMovieClicked)
+            }
+        }
+    }
+}
+@Composable
+fun UpcomingMovieList(
     modifier: Modifier,
     title: Int,
     movies:LazyPagingItems<Movie>?,
@@ -225,10 +308,10 @@ fun MovieList(
         style = MaterialTheme.typography.h5,
         color = Color.Blue,
     )
-    if(isLoading==false) {
-        LazyRow() {
-            items(movies!!) { movie ->
-                MovieItem(modifier, movie!!, isLoading = isLoading, onMovieClicked)
+    if(movies!=null) {
+        LazyRow(modifier.padding(top = 8.dp)) {
+            items(movies) { movie ->
+                UpcomingMovieItem(modifier, movie!!, onMovieClicked)
             }
         }
     }
@@ -236,42 +319,63 @@ fun MovieList(
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MovieItem(
+fun PopularMovieItem(
     modifier: Modifier,
     movie: Movie,
-    isLoading: Boolean?,
     onMovieClicked: (Movie) -> Unit) {
 
     Card(
         modifier
             .fillMaxWidth()
-            .padding(12.dp)
+            .padding(end = 16.dp)
             .clickable { onMovieClicked.invoke(movie) },
         elevation = 4.dp,
         shape = RoundedCornerShape(20.dp)
 
     ) {
+        GlideImage(
+                 model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+                  contentDescription = "",
+            modifier
+                .height(200.dp)
+                .fillMaxWidth(),
+                  contentScale = ContentScale.Fit
 
-            when(isLoading){
-                true->{
-                    LoadingImageShimmer(modifier = modifier,200.0,200.0)
+                    ) }
 
-                }
-                else->{
-                    Column() {
+
+    }
+
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun UpcomingMovieItem(
+    modifier: Modifier,
+    movie: Movie,
+    onMovieClicked: (Movie) -> Unit) {
+
+    Column(
+        modifier= modifier
+            .padding(end = 16.dp)
+            .clickable { onMovieClicked.invoke(movie) },
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
                     GlideImage(
                         model = "${Constants.IMAGE_URL}${movie?.posterPath}",
                         contentDescription = "",
                         modifier
-                            .height(200.dp)
-                            .fillMaxWidth(),
-                        contentScale = ContentScale.Fit
+                            .clip(CircleShape)
+                            .size(120.dp),
+                        contentScale = ContentScale.FillBounds
 
-                    ) }
+                    )
+
+
                 }
+
             }
-        }
-    }
+
 
 
 
@@ -282,12 +386,11 @@ fun MovieItem(
     ) {
         TextField(
             value = "",
-            onValueChange = {
-
-            },
-
+            onValueChange = {},
+            enabled = false,
             modifier = modifier
                 .clickable {
+                    Log.e(TAG, "HomeSearchBar:hello ",)
                     onSearchClick.invoke()
                 }
                 .background(color = Color.White, shape = RoundedCornerShape(50))
@@ -315,9 +418,11 @@ fun MovieItem(
     @Composable
     fun TrendMovieItem(
     modifier: Modifier,
-    movie: Movie?,
+    movie: Movie,
     onMovieClicked:(Movie)-> Unit
 ) {
+    Box {
+        var isImageLoading by remember { mutableStateOf(false) }
         Card(
             modifier
                 .fillMaxWidth()
@@ -327,17 +432,56 @@ fun MovieItem(
             shape = RoundedCornerShape(20.dp)
 
         ) {
-                    GlideImage(
-                           model = "${Constants.IMAGE_URL}${movie?.posterPath}",
-                           contentDescription = "",
-                        modifier
-                            .height(200.dp)
-                            .requiredWidth(300.dp),
-                           contentScale = ContentScale.Fit
-                       )
-                   }
-               }
 
+            if (movie.posterPath != null) {
+
+
+                val painter = rememberAsyncImagePainter(
+                    model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+                )
+
+                isImageLoading = when(painter.state) {
+                    is AsyncImagePainter.State.Loading -> true
+                    else -> false
+                }
+
+
+                    Image(
+                        modifier = Modifier
+                            .height(200.dp)
+                            .width(300.dp)
+                            ,
+                        painter = painter,
+                        contentDescription = "Poster Image",
+                        contentScale = ContentScale.FillWidth,
+                    )
+
+
+
+            }
+
+
+        }
+        if (isImageLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color =MaterialTheme.colors.primary,
+            )
+        }
+
+        Text(
+            text = movie.title,
+            style = MaterialTheme.typography.h6,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+
+        )
+    }
+}
 
 
 

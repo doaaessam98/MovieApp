@@ -11,41 +11,41 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 
-@Entity(tableName = "movie")
+
+@Entity(primaryKeys = ["id","type"], tableName ="movie")
 @Parcelize
 data class Movie(
- @SerializedName("adult")
+    @SerializedName("adult")
     val adult: Boolean =false,
 //    @SerializedName("backdrop_path")
 //    val backdropPath: String="",
 // @Embedded
     //   @SerializedName("genre_ids")
     //   val genreIds: List<Int> = listOf(),
- @PrimaryKey
     @SerializedName("id")
     val id: Int=0,
- @SerializedName("original_language")
+    @SerializedName("original_language")
     val originalLanguage: String="",
- @SerializedName("original_title")
+    @SerializedName("original_title")
     val originalTitle: String="",
- @SerializedName("overview")
+    @SerializedName("overview")
     val overview: String="",
- @SerializedName("popularity")
+    @SerializedName("popularity")
     val popularity: Double=0.0,
- @SerializedName("poster_path")
+    @SerializedName("poster_path")
     val posterPath: String="",
- @SerializedName("release_date")
+    @SerializedName("release_date")
     val releaseDate: String="",
- @SerializedName("title")
+    @SerializedName("title")
     val title: String="",
- @SerializedName("video")
+    @SerializedName("video")
     val video: Boolean=false,
- @SerializedName("vote_average")
+    @SerializedName("vote_average")
     val voteAverage: Double=0.0,
- @SerializedName("vote_count")
+    @SerializedName("vote_count")
     val voteCount: Int=0,
- var type:String="",
- val isFav: Boolean=false
+    var type:String="",
+    var isFav: Boolean=false
 ):Parcelable {
 
 }

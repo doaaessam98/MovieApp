@@ -1,25 +1,26 @@
 package com.example.movieapp.Screens.search
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.example.movieapp.Screens.home.HomeSideEffect
-import com.example.movieapp.Screens.home.HomeState
+import androidx.paging.cachedIn
 import com.example.movieapp.base.BaseViewModel
 import com.example.movieapp.data.repository.IRepository
-import com.example.movieapp.models.ApiQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.example.movieapp.base.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: IRepository
     ):BaseViewModel<SearchIntent,SearchState,SearchSideEffect>(){
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> =_searchQuery
+
+    private val _searchBar = MutableStateFlow("")
+    val searchBar: StateFlow<String> = _searchBar
+
 
     override fun initialState(): SearchState {
        return SearchState()
@@ -28,36 +29,35 @@ class SearchViewModel @Inject constructor(
     override fun handleEvents(event: SearchIntent) {
          when(event){
              is SearchIntent.FetchMoviesForSearch->{
-                 _searchQuery.value = event.query
-                  getSearchMovie(event.query)
+                  onQueryChange(event.query)
+                  //getSearchMovie(event.query)
              }
              is SearchIntent.MovieSelected->{
 
              }
+             is SearchIntent.BackToHome->{
+                // setEffect { SearchSideEffect.Navigation.BackToHome }
+             }
+
          }
     }
 
     private fun getSearchMovie(query: String) {
-     //  viewModelScope.launch {
-//           repository.getMoviesByType(ApiQuery.Search(searchQuery = query)).let { result ->
-//             when(result){
-//                 is Result.Loading->{
-//                     setState { copy(isLoading = true) }
-//
-//                 }
-//                 is Result.Success->{
-//                     setState { copy(MoviesResult=result.data,isLoading=false) }
-//
-//                 }
-//                 is Result.Error -> {
-//                     setEffect { SearchSideEffect.ShowLoadDataError(message = result.message!!)}
-//
-//
-//                 }
-//             }
-//
-//           }
-//       }
+           viewModelScope.launch {
+                repository.getSearchMovies(query).cachedIn(viewModelScope).let {
+                    setState { SearchState(MoviesResult = it) }
+                }
+           }
     }
 
-}
+ private fun onQueryChange(newQuery: String){
+     if(newQuery!=null){
+         _searchBar.value = newQuery
+         getSearchMovie(newQuery)
+     }
+
+
+ }
+
+    }
+

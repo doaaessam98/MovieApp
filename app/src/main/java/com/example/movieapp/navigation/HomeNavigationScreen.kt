@@ -21,7 +21,7 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun HomeNavigationScreen(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController
 
 ) {
     var isTopBarVisible by remember { mutableStateOf(true) }
