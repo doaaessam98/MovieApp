@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">MovieApp</string>
     <string name="movie_image">movie_image</string>
-    <string name="placeholder_search">search her</string>
+    <string name="placeholder_search">search her...</string>
     <string name="fav_icon">favIcon</string>
     <string name="top_rate">Popular</string>
     <string name="category">Category</string>
     <string name="no" />
-    <string name="home">Action</string>
+    <string name="home">Home</string>
     <string name="action">Action</string>
     <string name="see_all">See All</string>
     <string name="favourite">Favourite</string>
@@ -22,4 +22,11 @@
     <string name="btn_search_fav">search_icon_fav</string>
     <string name="Votes">vote :  </string>
     <string name="loading_error_message">Some thing error happen</string>
+    <string name="delete_fromFav_icon">deleteFromFavIcon</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="confirm_dilog_title">Confirm Dialog</string>
+    <string name="delete_dialog_message">Are you sure you want to delete this move from favourite</string>
+    <string name="btn_search_category">search_icon_category</string>
+    <string name="details_image_fav">image_fav</string>
 </resources>

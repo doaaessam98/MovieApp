@@ -2,6 +2,7 @@ package com.example.movieapp.Screens.search
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,8 +17,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,8 +38,15 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.movieapp.R
+import com.example.movieapp.Screens.LoadingImageShimmer
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
 import com.example.movieapp.navigation.Screen
@@ -64,13 +74,13 @@ fun SearchScreen(
 
         Box(){
             ConstraintLayout {
-                val (topBox,ContentBox,back, searchIcon) = createRefs()
+                val (topBox,ContentBox) = createRefs()
                 val topGuideline = createGuidelineFromTop(60.dp)
                 Box(
                     modifier
                         .height(150.dp)
                         .fillMaxWidth()
-                        .background(Color.Blue)
+                        .background(MaterialTheme.colors.secondary)
                         .constrainAs(topBox) {
                             top.linkTo(parent.top)
                             start.linkTo(parent.start)
@@ -83,7 +93,7 @@ fun SearchScreen(
                     },
                         modifier
                             .align(Alignment.TopStart)
-                            .padding(start = 8.dp, top = 32.dp)
+                            .padding(top = 16.dp)
                         ) {
                             Icon(imageVector = Icons.Rounded.ArrowBack,
                                 tint = Color.White,
@@ -101,11 +111,10 @@ fun SearchScreen(
                         }
 
                 if(searchMoviesResult!=null){
-                    Log.e(TAG, "SearchScreen: not null ", )
                     LazyColumn(
                         modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, bottom = 80.dp)
+                            .padding(start = 8.dp, bottom = 80.dp)
                             .constrainAs(ContentBox) {
                                 top.linkTo(topGuideline, 16.dp)
                                 start.linkTo(parent.start)
@@ -132,7 +141,7 @@ fun SearchScreen(
                                     Text(
                                         modifier = Modifier
                                             .padding(8.dp),
-                                        text = "Refresh Loading"
+                                        text = "Loading"
                                     )
 
                                     CircularProgressIndicator(color = MaterialTheme.colors.primary)
@@ -178,7 +187,7 @@ fun SearchScreen(
                                     Text(
                                         modifier = Modifier
                                             .padding(8.dp),
-                                        text = error.message ?: error.toString(),
+                                        text = stringResource(id = R.string.loading_error_message),
                                         textAlign = TextAlign.Center,
                                     )
 
@@ -200,7 +209,25 @@ fun SearchScreen(
 
                     }
                 }else{
-                    Log.e(TAG, "SearchScreen: ", )
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec
+                            .RawRes(R.raw.search)
+                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                       verticalArrangement = Arrangement.Center ,
+                    modifier= modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(start = 8.dp, bottom = 80.dp)
+                        .constrainAs(ContentBox) {
+                            top.linkTo(topGuideline, 16.dp)
+                            start.linkTo(parent.start)
+                        }){
+                    LottieAnimation(
+                        composition= composition,
+                        iterations = LottieConstants.IterateForever
+                     )}
                 }
                 }
 
@@ -209,33 +236,31 @@ fun SearchScreen(
 
 
 
-//
-//        LaunchedEffect(Constants.SIDE_EFFECTS_KEY) {
-//            sideEffect.onEach { effect ->
-//                when (effect) {
-//                    is SearchSideEffect.Navigation.OpenMovieDetails -> {
-//                        navController.currentBackStackEntry?.savedStateHandle?.set(
-//                            key = Constants.MOVIE_NAVIGATION_KEY,
-//                            value =effect.movie
-//                        )
-//                        navController.navigate(Screen.Details.route){
-//
-//                        }
-//                    }
-//                    is SearchSideEffect.ShowLoadDataError->{
-//                        scaffoldState.snackbarHostState.showSnackbar(
-//                            message = effect.message,
-//                            duration = SnackbarDuration.Long
-//                        )
-//                    }
-//                    is SearchSideEffect.Navigation.BackToHome->{
-//                        navController.navigate(Screen.Search.route)
-//                    }
-//
-//
-//                }
-//            }.collect()
-//        }
+
+        LaunchedEffect(Constants.SIDE_EFFECTS_KEY) {
+            sideEffect.onEach { effect ->
+                when (effect) {
+                    is SearchSideEffect.Navigation.OpenMovieDetails -> {
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = Constants.MOVIE_NAVIGATION_KEY,
+                            value =effect.movie
+                        )
+                        navController.navigate(Screen.Details.route)
+                    }
+                    is SearchSideEffect.ShowLoadDataError->{
+                        scaffoldState.snackbarHostState.showSnackbar(
+                            message = effect.message,
+                            duration = SnackbarDuration.Long
+                        )
+                    }
+                    is SearchSideEffect.Navigation.BackToHome->{
+                        navController.popBackStack()
+                    }
+
+
+                }
+            }.collect()
+        }
 
 
 
@@ -258,7 +283,7 @@ fun CardMovieItem(
     Box(
         modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp, start = 16.dp)
             .clickable {
                 onMovieClick.invoke()
             }
@@ -273,7 +298,7 @@ fun CardMovieItem(
         {
             ConstraintLayout(modifier.padding( 8.dp)) {
                 val (name,releaseYear,rate) = createRefs()
-                val startGuideline = createGuidelineFromStart(110.dp)
+                val startGuideline = createGuidelineFromStart(120.dp)
 
                 Text(text = movie.title,
                     style = MaterialTheme.typography.h6,
@@ -281,7 +306,7 @@ fun CardMovieItem(
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    modifier= modifier
+                    modifier= modifier.width(160.dp)
                         .constrainAs(name) {
                             top.linkTo(parent.top,8.dp)
                             end.linkTo(parent.end,8.dp)
@@ -316,7 +341,7 @@ fun CardMovieItem(
                             .padding(bottom = 16.dp)
                             .constrainAs(rate) {
                                 top.linkTo(releaseYear.bottom, 16.dp)
-                                start.linkTo(name.start)
+                                start.linkTo(startGuideline, 8.dp)
                                 end.linkTo(parent.end, 8.dp)
                             }
                     ) }
@@ -328,21 +353,45 @@ fun CardMovieItem(
 
         }
 
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data("${Constants.IMAGE_URL}${movie?.posterPath}")
-                .crossfade(true)
-                .build(),
-            placeholder = painterResource(R.drawable.images),
-            contentDescription = stringResource(R.string.details_image_description),
-            contentScale = ContentScale.FillBounds,
-            modifier  = modifier
-                .align(Alignment.TopStart)
-                .padding(bottom = 16.dp)
-                .height(140.dp)
-                .width(140.dp),
-            onError = {}
-        )
+        if (movie.posterPath != null) {
+            var isImageLoading by remember { mutableStateOf(false) }
+
+            val painter = rememberAsyncImagePainter(
+                model ="${Constants.IMAGE_URL}${movie?.posterPath}",
+            )
+
+            isImageLoading = when(painter.state) {
+                is AsyncImagePainter.State.Loading -> true
+                else -> false
+            }
+
+            Box (
+                contentAlignment = Alignment.Center,
+                        modifier  = modifier
+                            .align(Alignment.TopStart)
+                            .padding(bottom = 16.dp)
+                            .background(color = Color.Gray)
+
+            ) {
+                Image(
+                    painter = painter,
+                    contentDescription = "Poster Image",
+                    contentScale = ContentScale.FillBounds,
+                    modifier = modifier
+                        .height(140.dp)
+                        .width(140.dp)
+                )
+
+                if (isImageLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colors.primary,
+                    )
+                }
+            }
+        }
+
+
 
     }
 }
@@ -386,6 +435,5 @@ fun SearchBar(
 @Preview(showBackground = true, heightDp = 700)
 @Composable
 fun SearchPreview(){
-    val movie  = Movie(title = "first move details", releaseDate ="2020" , isFav = false,voteAverage = 7.6,overview = "hello helloe hello,hello,hello,hello", video = true)
     SearchScreen(Modifier, rememberNavController())
 }

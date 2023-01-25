@@ -2,22 +2,23 @@ package com.example.movieapp.Screens.movieDetails
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import android.util.LogPrinter
 import androidx.lifecycle.viewModelScope
+import com.example.movieapp.Screens.favourite.FavouriteSideEffect
 import com.example.movieapp.base.BaseViewModel
-import com.example.movieapp.data.repository.IRepository
-import com.example.movieapp.models.Favourite
+import com.example.movieapp.data.repository.movies.IRepository
 import com.example.movieapp.models.Movie
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.movieapp.base.Result
+import com.example.movieapp.data.repository.favourite.FavouriteIRepository
+
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
-    private  val repository: IRepository):
+    private val favRepository:FavouriteIRepository
+):
     BaseViewModel<DetailsIntent,DetailsState,DetailsSideEffect>(){
-
-
-
 
     override fun initialState(): DetailsState {
        return DetailsState()
@@ -26,38 +27,58 @@ class MovieDetailsViewModel @Inject constructor(
     override fun handleEvents(event: DetailsIntent) {
           when(event){
               is DetailsIntent.AddMovieToFavourite->{
-                  Log.e(TAG, "handleEvents add: ${event.movie.id}", )
                   addMoveToFavourite(event.movie)
               }
               is DetailsIntent.RemoveMovieToFavourite->{
-                  Log.e(TAG, "handleEventsremove: ${event.movieId}", )
                   removeMovieFromFavourite(event.movieId)
               }
               is DetailsIntent.BackToHome->{
-
+                    setEffect { DetailsSideEffect.Navigation.Back }
               }
               is DetailsIntent.OpenMovieVideo->{
 
+              }
+              is DetailsIntent.CheckIsFav->{
+                  isFavourite(event.id)
+              }
+              is DetailsIntent.GetGenres->{
+                  getMovieGenres(event.genresIds)
               }
           }
     }
 
     private fun removeMovieFromFavourite(movieId: Int) {
+        viewModelScope.launch {
+            favRepository.removeFromFavourite(movieId).let {
+                when(it){
+                    is Result.Loading->{
+                        setState { DetailsState(loading=true) }
+                    }
+                    is Result.Success->{
+                        setState {DetailsState(isFav = false, loading = false) }
+                        setEffect { DetailsSideEffect.ShowToast("movie removed from favourite") }
 
+                    }
+                    is Result.Error->{
+
+                    }
+
+                }
+            }
+        }
     }
 
     private fun addMoveToFavourite(movie: Movie) {
-         val favouriteMovie= Favourite(movie.id)
         viewModelScope.launch {
-
-           repository.addToFavourite(favouriteMovie) .let {
+            favRepository.addToFavourite(movie.id).let {
                       when(it){
                           is Result.Loading->{
                               setState { DetailsState(loading=true) }
                           }
                           is Result.Success->{
-                              Log.e(TAG, "addMoveToFavourite: ${it.data}", )
                               setState {DetailsState(isFav = true, loading = false) }
+                              setEffect { DetailsSideEffect.ShowToast("movie added to favourite") }
+
                           }
                           is Result.Error->{
 
@@ -65,21 +86,19 @@ class MovieDetailsViewModel @Inject constructor(
 
                       }
            }
-
-
         }
     }
 
      fun isFavourite(id: Int) {
         viewModelScope.launch {
-            repository.isFavourite(id) .let {
+            favRepository.isFavourite(id) .let {
                 when(it){
                     is Result.Loading->{
                         setState { DetailsState(loading=true) }
                     }
                     is Result.Success->{
-                        Log.e(TAG, "addMoveToFavourite: ${it.data}", )
-                        setState {DetailsState(isFav = true, loading = false) }
+                        Log.e(TAG, "isFavourite: ${it.data}", )
+                       setState {DetailsState(isFav = it.data!!, loading = false) }
                     }
                     is Result.Error->{
 
@@ -91,9 +110,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         }
     }
-
-
-    fun getMovieGenres(genreIds: List<Int>?) {
+    private fun getMovieGenres(genreIds: List<Int>?) {
 
     }
 }

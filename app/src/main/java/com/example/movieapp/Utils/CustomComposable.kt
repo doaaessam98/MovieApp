@@ -1,6 +1,7 @@
 package com.example.movieapp.Screens
 
 import android.annotation.SuppressLint
+import android.os.Build.VERSION.SDK_INT
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -62,12 +63,36 @@ fun LoadingImageShimmer(modifier: Modifier, width:Double, height:Double) {
         modifier = modifier
             .height(height.dp)
             .width(width.dp)
-            .background(Color.LightGray.copy(alpha = alpha))
+            .background(Color(0xFFB1B0B3).copy(alpha = alpha))
     )
 
 
 }
 
+//@Composable
+//fun GifImage(
+//    modifier: Modifier = Modifier,
+//) {
+//    val context = LocalContext.current
+//    val imageLoader = ImageLoader.Builder(context)
+//        .components {
+//            if (SDK_INT >= 28) {
+//                add(ImageDecoderDecoder.Factory())
+//            } else {
+//                add(GifDecoder.Factory())
+//            }
+//        }
+//        .build()
+//    Image(
+//        painter = rememberAsyncImagePainter(
+//            ImageRequest.Builder(context).data(data = R.drawable.YOUR_GIF_HERE).apply(block = {
+//                size(Size.ORIGINAL)
+//            }).build(), imageLoader = imageLoader
+//        ),
+//        contentDescription = null,
+//        modifier = modifier.fillMaxWidth(),
+//    )
+//}
 
 
 

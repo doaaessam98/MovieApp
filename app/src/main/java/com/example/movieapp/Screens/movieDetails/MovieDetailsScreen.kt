@@ -1,6 +1,8 @@
 package com.example.movieapp.Screens.movieDetails
 
 import android.annotation.SuppressLint
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -28,8 +30,9 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.movieapp.R
 import com.example.movieapp.Screens.LoadingImageShimmer
@@ -39,6 +42,7 @@ import com.example.movieapp.models.Movie
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
 
@@ -47,30 +51,34 @@ import kotlinx.coroutines.flow.onEach
 fun MovieDetailsScreen(
     modifier: Modifier,
     movie: Movie?,
-    navHostController: NavHostController,
+    navController: NavHostController,
     viewModel: MovieDetailsViewModel= hiltViewModel()
 ){
-     val sideEffect =viewModel.effect
-    val isFav = viewModel.viewState.value.isFav
+    val state = viewModel.viewState.value
+    val isFav = state.isFav
     var rating: Float? by remember { mutableStateOf(movie?.voteAverage?.toFloat()) }
-    val genresState = viewModel.viewState.value
+//    val genresState = viewModel.viewState.value
+    // val genres = state.genres
+    val sideEffect =viewModel.effect
+    val scaffoldState: ScaffoldState = rememberScaffoldState()
+    var isImageLoading by remember { mutableStateOf(false) }
+    var isBackgroundImageLoading by remember { mutableStateOf(false) }
+    val context  = LocalContext.current
+
+
     Box(
         modifier
             .fillMaxWidth()
             .background(Color.White)
             ) {
         ConstraintLayout() {
-            val (topBox, ContentBox, back, movieImage,movieImage1) = createRefs()
-            val topGuideline1 = createGuidelineFromTop(40.dp)
-            val topGuideline2= createGuidelineFromTop(170.dp)
+            val (topBox, ContentBox) = createRefs()
+            val topGuideline1 = createGuidelineFromTop(60.dp)
 
 
             Box(
                 modifier
                     .fillMaxWidth()
-//                    .background(
-//                        Color(0xFF44072D)
-//                    )
                     .height(300.dp)
                     .constrainAs(topBox) {
                         top.linkTo(parent.top)
@@ -78,21 +86,35 @@ fun MovieDetailsScreen(
                         end.linkTo(parent.end)
                     })
             {
+                if(movie?.posterPath!=null) {
+                    val painter = rememberAsyncImagePainter(
+                        model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+                    )
 
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data("${Constants.IMAGE_URL}${movie?.posterPath}")
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.images),
-                    contentDescription = stringResource(R.string.details_image_description),
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
+                    isImageLoading = when (painter.state) {
+                        is AsyncImagePainter.State.Loading -> true
+                        else -> false
+                    }
 
-                )
 
+                    Image(
+                        painter = painter,
+                        contentDescription = "Poster Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .height(400.dp)
+                    )
+
+
+                }
+
+                if (isBackgroundImageLoading) {
+                    LoadingImageShimmer(
+                        modifier = modifier
+                            .fillMaxWidth(), width =130.0, height =400.0)
+
+                }
                 if(movie!!.video) {
                     IconButton(
                         onClick = {},
@@ -161,20 +183,23 @@ fun MovieDetailsScreen(
 
         Card(
                 elevation = 8.dp,
-                modifier = modifier.padding(top = 200.dp)
+                modifier = modifier.padding(top = 160.dp)
 
                     ) {
 
-        ConstraintLayout(modifier
-                        .padding(top = 16.dp, end = 8.dp, bottom = 32.dp)
-                        .background(Color.White),
+        ConstraintLayout(
+            modifier
+                .padding(top = 16.dp, end = 8.dp, bottom = 32.dp, start = 24.dp)
+                ,
 
                        ) {
                val (rate,release,vote,title,genre,overView) = createRefs()
-                   Row(modifier = modifier.padding(8.dp).constrainAs(rate){
-                         top.linkTo(parent.top,16.dp)
-                         end.linkTo(parent.end)
-                   }) {
+                   Row(modifier = modifier
+                       .padding(8.dp)
+                       .constrainAs(rate) {
+                           top.linkTo(parent.top, 16.dp)
+                           end.linkTo(parent.end)
+                       }) {
 
                        (rating?.div(2))?.toFloat().let {
                             RatingBar(
@@ -212,26 +237,28 @@ fun MovieDetailsScreen(
                             )
 
                     Text(
-                        text = stringResource(id = R.string.Votes).plus(movie!!.voteCount),
+                        text = stringResource(id = R.string.Votes).plus(movie.voteCount),
                         style = MaterialTheme.typography.h6,
                         color = Color.Black,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = modifier.padding(8.dp).constrainAs(vote){
-                            top.linkTo(release.bottom,8.dp)
-                            start.linkTo(release.start)
-                        }
+                        modifier = modifier
+                            .padding(8.dp)
+                            .constrainAs(vote) {
+                                top.linkTo(release.bottom, 8.dp)
+                                start.linkTo(release.start)
+                            }
                     )
 
                     Text(
-                        text = movie!!.originalTitle,
+                        text = movie.title,
                         style = MaterialTheme.typography.h6,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                         modifier=modifier.constrainAs(title){
-                            top.linkTo(vote.bottom,32.dp)
-                            start.linkTo(parent.start)
+                            top.linkTo(vote.bottom,64.dp)
+                            start.linkTo(parent.start,16.dp)
                             end.linkTo(parent.end)
                         }
 
@@ -239,13 +266,12 @@ fun MovieDetailsScreen(
 
 
 
-//        genresState.let {
+//        state.let {
 //            when{
 //                it.loading->{
-//                   /// GenresLoading(modifier,movie.genreIds)
+//                   GenresLoading(modifier)
 //                }
 //                else->{
-//                    val genres = listOf<Genre>(Genre(1,"Action"),Genre(2,"Derama"),Genre(3,"Carton"))
 //                    LazyRow(
 //                        modifier=modifier.constrainAs(genre){
 //                            top.linkTo(title.bottom,16.dp)
@@ -253,7 +279,7 @@ fun MovieDetailsScreen(
 //                            end.linkTo(parent.end)
 //                        }
 //                    ){
-//                        items(genres){genre->
+//                        items(genres!!){genre->
 //                            GenreItem(modifier ,genre.name)
 //
 //                        }
@@ -262,70 +288,90 @@ fun MovieDetailsScreen(
 //            }
 //
 //        }
-
-
-
-            val genres = listOf<Genre>(Genre(1,"Action"),Genre(2,"Derama"),Genre(3,"Carton"))
-            LazyRow(
-                modifier=modifier.constrainAs(genre){
-                    top.linkTo(title.bottom,16.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
-            ){
-                items(genres){genre->
-                    GenreItem(modifier ,genre.name)
-
-                }
-            }
-                    Text(
+                   Text(
                         text = movie.overview,
                         style = MaterialTheme.typography.body1,
                         color = Color.Black,
                         fontSize = 16.sp,
-                        modifier = modifier.padding(all =16.dp).constrainAs(overView){
-                            top.linkTo(genre.bottom)
-                            start.linkTo(parent.start,8.dp)
-
-                        }
-                    
-                    )
+                        modifier = modifier
+                            .padding(bottom = 32.dp)
+                            .constrainAs(overView) {
+                                top.linkTo(title.bottom,16.dp)
+                                start.linkTo(parent.start, 32.dp)
+                                end.linkTo(parent.end,16.dp)
+                            })
 
 
                 }
             }
+        if(movie?.posterPath!=null) {
+            val painter = rememberAsyncImagePainter(
+                model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+            )
+
+            isImageLoading = when (painter.state) {
+                is AsyncImagePainter.State.Loading -> true
+                else -> false
+            }
 
 
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data("${Constants.IMAGE_URL}${movie?.posterPath}")
-                .crossfade(true)
-                .build(),
-            placeholder = painterResource(R.drawable.images),
-            contentDescription = stringResource(R.string.details_image_description),
-            contentScale = ContentScale.FillBounds,
-            modifier = modifier
-                .align(Alignment.TopStart)
-                .padding(start = 8.dp, top = 170.dp)
-                .height(200.dp)
-                .width(130.dp)
-                .background(color = Color.Transparent, shape = RoundedCornerShape(4.dp))
-        )
+            Image(
+                painter = painter,
+                contentDescription = "Poster Image",
+                contentScale = ContentScale.FillBounds,
+                modifier = modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 8.dp, top = 150.dp)
+                    .height(200.dp)
+                    .width(130.dp)
+                    .background(color = Color.Transparent, shape = RoundedCornerShape(4.dp))
+            )
+
+
         }
-    }
-    }
 
+        if (isImageLoading) {
+            LoadingImageShimmer(
+                modifier = modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 8.dp, top = 170.dp), width =130.0, height =200.0)
+
+        }
+    } } }
+
+
+    LaunchedEffect(Constants.SIDE_EFFECTS_KEY) {
+//        movie?.genreIds?.let {
+//            viewModel.setEvent(DetailsIntent.GetGenres(it))
+//        }
+        movie?.id?.let {
+            viewModel.setEvent(DetailsIntent.CheckIsFav(it))
+
+        }
+        sideEffect.onEach { effect ->
+            when (effect) {
+                is DetailsSideEffect.ShowToast->{
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                is DetailsSideEffect.Navigation.Back->{
+                    navController.popBackStack()
+                }
+            }
+        }.collect()
+    }
 
 
 }
 
 @Composable
-fun GenresLoading(modifier: Modifier, genres: List<Int>) {
-    LazyRow(){
-        items(genres){genre->
-           LoadingImageShimmer(modifier = modifier, width = 32.0, height =32.0 )
-        }
-    }
+fun GenresLoading(modifier: Modifier) {
+  Row(){
+      LoadingImageShimmer(modifier = modifier.padding(end = 8.dp), width = 32.0, height =32.0 )
+      LoadingImageShimmer(modifier = modifier, width = 32.0, height =32.0 )
+      LoadingImageShimmer(modifier = modifier, width = 32.0, height =32.0 )
+
+
+  }
 }
 
 @Composable
@@ -357,6 +403,4 @@ fun GenreItem(modifier:Modifier,name: String) {
 @Preview(showBackground = true, heightDp = 700)
 @Composable
 fun Preview(){
-    val movie  = Movie(title = "first move details", releaseDate ="2020" , isFav = false,voteAverage = 7.6,overview = "hello helloe hello,hello,hello,hello", video = true)
-   MovieDetailsScreen(Modifier, movie,rememberNavController())
 }

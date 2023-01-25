@@ -4,8 +4,7 @@ import com.example.movieapp.base.ViewState
 import com.example.movieapp.models.Genre
 
 data class DetailsState(
-    val genres:List<Genre>?= listOf(),
-    val isFav:Boolean=false,
-    val loading:Boolean=false
+    val loading:Boolean=false,
+    val isFav:Boolean=false
 ):ViewState {
 }

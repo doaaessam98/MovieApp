@@ -12,16 +12,16 @@ import kotlinx.serialization.Serializable
 
 
 
-@Entity(primaryKeys = ["id","type"], tableName ="movie")
+@Entity(tableName ="movie")
 @Parcelize
 data class Movie(
     @SerializedName("adult")
     val adult: Boolean =false,
 //    @SerializedName("backdrop_path")
 //    val backdropPath: String="",
-// @Embedded
-    //   @SerializedName("genre_ids")
-    //   val genreIds: List<Int> = listOf(),
+    @SerializedName("genre_ids")
+       val genreIds: List<Int> = emptyList(),
+    @PrimaryKey
     @SerializedName("id")
     val id: Int=0,
     @SerializedName("original_language")
@@ -44,15 +44,29 @@ data class Movie(
     val voteAverage: Double=0.0,
     @SerializedName("vote_count")
     val voteCount: Int=0,
-    var type:String="",
-    var isFav: Boolean=false
+    var isFav: Boolean=false,
+    var page:Int = 0,
+    var isTrending:Boolean =false,
+    var isPopular:Boolean =false,
+    var isUpcoming:Boolean = false
+
 ):Parcelable {
 
 }
 
-fun List<Movie>.toDatabaseEntity(type: String){
+fun List<Movie>.toDatabaseEntity(type:ApiQuery){
     this.forEach{
-          it.type = type
+           when(type){
+               is ApiQuery.Trending->{
+                   it.isTrending = true
+               }
+               is ApiQuery.Popular->{
+                   it.isPopular=true
+               }
+               is ApiQuery.Upcoming->{
+                   it.isUpcoming = true
+               }
+           }
 
       }
  }

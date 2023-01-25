@@ -1,14 +1,13 @@
-package com.example.movieapp.models
+package com.example.movieapp.data.source.local.db.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-@Entity(tableName = "remote_keys")
-    data class RemoteKeys(
+@Entity(tableName = "trending_remote_keys")
+    data class TrendingRemoteKeys(
     @PrimaryKey
     val MovieId: Int,
     val prevKey: Int?,
     val nextKey: Int?,
-    val type:String= ""
     )

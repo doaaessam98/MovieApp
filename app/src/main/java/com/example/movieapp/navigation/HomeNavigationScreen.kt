@@ -93,7 +93,7 @@ fun RowScope.AddItem(
 
         alwaysShowLabel = true,
         selected = currentDestination == screen.route,
-        selectedContentColor = Color(0xFF407BFF),
+        selectedContentColor =MaterialTheme.colors.secondary,
         unselectedContentColor = Color.Black,
 
         onClick = {

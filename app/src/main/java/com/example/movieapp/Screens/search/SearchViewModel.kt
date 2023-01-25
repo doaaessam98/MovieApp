@@ -1,11 +1,9 @@
 package com.example.movieapp.Screens.search
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.example.movieapp.base.BaseViewModel
-import com.example.movieapp.data.repository.IRepository
+import com.example.movieapp.data.repository.movies.IRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,22 +19,23 @@ class SearchViewModel @Inject constructor(
     private val _searchBar = MutableStateFlow("")
     val searchBar: StateFlow<String> = _searchBar
 
-
+  init {
+     // setEvent(SearchIntent.FetchMoviesForSearch("a"))
+  }
     override fun initialState(): SearchState {
        return SearchState()
     }
-
     override fun handleEvents(event: SearchIntent) {
          when(event){
              is SearchIntent.FetchMoviesForSearch->{
                   onQueryChange(event.query)
-                  //getSearchMovie(event.query)
              }
              is SearchIntent.MovieSelected->{
+                 setEffect { SearchSideEffect.Navigation.OpenMovieDetails(movie = event.movie!!) }
 
              }
              is SearchIntent.BackToHome->{
-                // setEffect { SearchSideEffect.Navigation.BackToHome }
+                setEffect { SearchSideEffect.Navigation.BackToHome }
              }
 
          }

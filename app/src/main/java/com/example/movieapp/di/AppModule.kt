@@ -1,8 +1,12 @@
 package com.example.movieapp.di
 
 
-import com.example.movieapp.data.repository.IRepository
-import com.example.movieapp.data.repository.Repository
+import com.example.movieapp.data.repository.categories.CategoryIRepository
+import com.example.movieapp.data.repository.categories.CategoryRepository
+import com.example.movieapp.data.repository.favourite.FavouriteIRepository
+import com.example.movieapp.data.repository.favourite.FavouriteRepository
+import com.example.movieapp.data.repository.movies.IRepository
+import com.example.movieapp.data.repository.movies.Repository
 import com.example.movieapp.data.source.local.ILocalDataSource
 import com.example.movieapp.data.source.local.LocalDataSource
 import com.example.movieapp.data.source.remote.IRemoteDataSource
@@ -24,5 +28,11 @@ interface AppModule {
 
     @Binds
     fun provideRepository(repository: Repository): IRepository
+
+    @Binds
+    fun provideFavouriteRepository(repository: FavouriteRepository): FavouriteIRepository
+
+    @Binds
+    fun provideCategoryRepository(repository: CategoryRepository): CategoryIRepository
 
 }

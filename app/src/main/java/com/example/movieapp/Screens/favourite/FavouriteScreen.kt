@@ -1,17 +1,20 @@
 package com.example.movieapp.Screens.favourite
 
+import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,14 +35,23 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.movieapp.R
-import com.example.movieapp.Screens.LoadingImageShimmer
 import com.example.movieapp.Screens.home.HomeSearchBar
+import com.example.movieapp.Screens.home.HomeSideEffect
+import com.example.movieapp.Screens.search.SearchBar
+import com.example.movieapp.Screens.search.SearchIntent
 import com.example.movieapp.Utils.Constants
 import com.example.movieapp.models.Movie
+import com.example.movieapp.navigation.Screen
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarConfig
 import com.gowtham.ratingbar.RatingBarStyle
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 
 
 @Composable
@@ -49,13 +61,18 @@ fun FavouriteScreen(
     viewModel: FavouriteViewModel= hiltViewModel()
  ){
 
-     var showDialog by rememberSaveable{ mutableStateOf(false) }
+
      var isSearch by rememberSaveable { mutableStateOf(false) }
     val state=viewModel.viewState.value
-    val favouriteMovies:List<Movie>?= state.FavouriteMovies?.collectAsState(initial = emptyList())?.value
+    val favouriteMovies:List<Movie>?= state.FavouriteMovies?.collectAsState(initial = emptyList())?.value?.toSet()?.toList()
+     var showDialog by rememberSaveable { mutableStateOf(false) }
+    val searchQuery =viewModel.searchQuery.collectAsState(initial = "")
+    val sideEffect =viewModel.effect
+    val scaffoldState: ScaffoldState = rememberScaffoldState()
+    val context  = LocalContext.current
 
 
- Box{
+    Box{
      ConstraintLayout() {
          val (topBox,ContentBox) = createRefs()
          val topGuideline = createGuidelineFromTop(80.dp)
@@ -63,7 +80,7 @@ fun FavouriteScreen(
              modifier
                  .height(150.dp)
                  .fillMaxWidth()
-                 .background(Color.Blue)
+                 .background(MaterialTheme.colors.secondary)
                  .constrainAs(topBox) {
                      top.linkTo(parent.top)
                      start.linkTo(parent.start)
@@ -73,18 +90,27 @@ fun FavouriteScreen(
              ConstraintLayout(
                  modifier
                      .fillMaxWidth()
-                     .padding(horizontal = 16.dp, vertical = 16.dp))
+                     .padding(vertical = 16.dp))
              {
                  val (back,fav_name,search) = createRefs()
 
-             IconButton(onClick = {},
+             IconButton(onClick = {
+                       if(isSearch){
+                           isSearch=false
+                           viewModel.setEvent(FavouriteIntent.FetchFavouriteMovies)
+
+                       }
+                 else{
+                     viewModel.setEvent(FavouriteIntent.BackToHome)
+                 }
+             },
                  modifier.constrainAs(back){
                      top.linkTo(parent.top)
                      start.linkTo(parent.start)
 
                  }
              ) {
-                     Icon(imageVector = Icons.Rounded.ArrowBack,
+                 Icon(imageVector = if(isSearch)Icons.Rounded.Close else Icons.Rounded.ArrowBack,
                          tint = Color.White,
                          contentDescription = stringResource(id = R.string.btn_search_fav)
                      )
@@ -100,7 +126,7 @@ fun FavouriteScreen(
                  ) {
                  Icon(imageVector = Icons.Rounded.Search,
                      tint = Color.White,
-                     contentDescription = stringResource(id = R.string.btn_back_fav)
+                     contentDescription = stringResource(id = R.string.btn_search_fav)
                  )
              }
 
@@ -117,62 +143,112 @@ fun FavouriteScreen(
              )
 
          }else{
-             HomeSearchBar(modifier = modifier.padding(8.dp)) {
+                 SearchBar(modifier.padding(start = 48.dp, bottom = 8.dp, end = 16.dp),
+                 searchInput=searchQuery.value?:"",
+                 onValueChange = { viewModel.setEvent(FavouriteIntent.SearchInFavourite(it))})
 
-             }
          }
              }
          }
          state.let {
              when{
                it.isLoading!!->{
-                 ShowLoadingScreen(modifier)
+                  
 
                }
-                 else->{
-
-                         if(favouriteMovies!!.isEmpty()){
-                             ShowEmptyScreen()
-                         }else{
-                             LazyColumn(
-                                 modifier
-                                     .fillMaxWidth()
-                                     .padding(start = 16.dp, bottom = 80.dp)
-                                     .constrainAs(ContentBox) {
-                                         top.linkTo(topGuideline, 16.dp)
-                                         start.linkTo(parent.start)
-                                     }){
-
-                                 items(favouriteMovies){ movie->
-                 //                 ConfirmDialog(onConfirmClick = {
-                 //                     viewModel.setEvent(FavouriteIntent.RemoveMovieFromFavourite(movie.id))
-                 //                 })
-                                     FavouriteMovieItem(modifier, movie,
+               else->{
+                   if(favouriteMovies!!.isEmpty()){
+                       val composition by rememberLottieComposition(
+                           LottieCompositionSpec
+                               .RawRes(R.raw.favourite)
+                       )
+                       Column(
+                             horizontalAlignment = Alignment.CenterHorizontally ,
+                           verticalArrangement = Arrangement.Center,
+                          modifier= modifier
+                              .fillMaxWidth().fillMaxHeight()
+                              .padding(start = 16.dp, bottom = 80.dp)
+                              .constrainAs(ContentBox) {
+                                  top.linkTo(topGuideline, 16.dp)
+                                  start.linkTo(parent.start)
+                              }) {
+                           LottieAnimation(
+                               composition= composition,
+                               iterations = LottieConstants.IterateForever
+                           )
+                           }
+                     }else{
+                         LazyColumn(
+                             modifier
+                                 .fillMaxWidth()
+                                 .padding(start = 16.dp, bottom = 80.dp)
+                                 .constrainAs(ContentBox) {
+                                     top.linkTo(topGuideline, 16.dp)
+                                     start.linkTo(parent.start)
+                                 }){
+                                       items(favouriteMovies.toList()){ movie->
+                                         FavouriteMovieItem(modifier, movie,
                                          onMovieClick = { viewModel.setEvent(FavouriteIntent.OpenDetails(movie))},
-                                         onRemoveFromFavClick = {showDialog=true }
+                                         onRemoveFromFavClick = {
+                                             showDialog=true
+                                             viewModel.removeMovieId =it
+                                         }
                                      )
+                                               if(showDialog){                                                                              
+                                                   ConfirmDialog(modifier = modifier,
+                                                     onConfirmClick = {
+                                                         viewModel.setEvent(FavouriteIntent.RemoveMovieFromFavourite)
+                                                         showDialog=false
+
+                                                     }, onDismissClick = {
+                                                     showDialog=false
+                                                     })
+                                                                                                                                            
+                                             }                                                                                              
                                  }
                              }
                      }
-
                  }
              }
          }
 
+     }}
+    LaunchedEffect(Constants.SIDE_EFFECTS_KEY) {
 
-     }
- }
+        sideEffect.onEach { effect ->
+            when (effect) {
+                is FavouriteSideEffect.Navigation.OpenMovieDetails -> {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = Constants.MOVIE_NAVIGATION_KEY,
+                        value =effect.movie
+                    )
+                    navController.navigate(Screen.Details.route)
+                }
+                is FavouriteSideEffect.ShowLoadDataError-> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = effect.message,
+                        duration = SnackbarDuration.Long
+                    )
+                }
+                is FavouriteSideEffect.Navigation.BackToHome->{
+                     navController.popBackStack()
+                }
+                is FavouriteSideEffect.ShowToast->{
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.collect()
+    }
 
 }
 
-@Composable
-fun ShowEmptyScreen() {
 
-}
 @Composable
 fun ShowLoadingScreen(modifier: Modifier) {
 
-    Column(modifier = modifier.padding(top = 80.dp).verticalScroll(rememberScrollState())) {
+    Column(modifier = modifier
+        .padding(top = 80.dp)
+        .verticalScroll(rememberScrollState())) {
         LoadingItem(modifier)
         LoadingItem(modifier)
         LoadingItem(modifier)
@@ -214,7 +290,10 @@ fun LoadingItem(modifier: Modifier) {
                 val (name,releaseYear,rate) = createRefs()
                 val startGuideline = createGuidelineFromStart(110.dp)
 
-               Box(modifier= modifier.height(32.dp).fillMaxWidth().padding(horizontal = 64.dp)
+               Box(modifier= modifier
+                   .height(32.dp)
+                   .fillMaxWidth()
+                   .padding(horizontal = 64.dp)
                    .background(Color.LightGray.copy(alpha = alpha))
                    .constrainAs(name) {
                        top.linkTo(parent.top, 8.dp)
@@ -223,30 +302,39 @@ fun LoadingItem(modifier: Modifier) {
 
                    })
 
-                   Box(modifier=  modifier.height(32.dp).fillMaxWidth().padding(horizontal = 64.dp)
+                   Box(modifier= modifier
+                       .height(32.dp)
+                       .fillMaxWidth()
+                       .padding(horizontal = 64.dp)
                        .background(Color.LightGray.copy(alpha = alpha))
-                           .constrainAs(releaseYear) {
-                               top.linkTo(name.bottom, 16.dp)
-                               end.linkTo(parent.end)
-                               start.linkTo(startGuideline)
-                           })
+                       .constrainAs(releaseYear) {
+                           top.linkTo(name.bottom, 16.dp)
+                           end.linkTo(parent.end)
+                           start.linkTo(startGuideline)
+                       })
 
 
 
-                   Box(modifier = modifier.height(32.dp).fillMaxWidth().padding(horizontal = 64.dp)
+                   Box(modifier = modifier
+                       .height(32.dp)
+                       .fillMaxWidth()
+                       .padding(horizontal = 64.dp)
                        .background(Color.LightGray.copy(alpha = alpha))
-                               .padding(bottom = 16.dp)
-                               .constrainAs(rate) {
-                                   top.linkTo(releaseYear.bottom, 16.dp)
-                                   start.linkTo(parent.start)
-                                   end.linkTo(parent.end, 8.dp)
-                               })
+                       .padding(bottom = 16.dp)
+                       .constrainAs(rate) {
+                           top.linkTo(releaseYear.bottom, 16.dp)
+                           start.linkTo(parent.start)
+                           end.linkTo(parent.end, 8.dp)
+                       })
             }
                }
 
-        Box(modifier  = modifier.background(Color.LightGray.copy(alpha = alpha))
-                .align(Alignment.TopStart)
-                .padding(bottom = 16.dp).height(140.dp).width(140.dp)
+        Box(modifier  = modifier
+            .background(Color.LightGray.copy(alpha = alpha))
+            .align(Alignment.TopStart)
+            .padding(bottom = 16.dp)
+            .height(140.dp)
+            .width(140.dp)
 
         )
 
@@ -255,9 +343,10 @@ fun LoadingItem(modifier: Modifier) {
 
 @Composable
 fun FavouriteMovieItem(
-    modifier: Modifier,movie: Movie,
+    modifier: Modifier,
+    movie: Movie,
     onMovieClick: () -> Unit,
-    onRemoveFromFavClick:()->Unit) {
+    onRemoveFromFavClick:(Int)->Unit) {
     var rating: Float? by remember { mutableStateOf(movie.voteAverage.toFloat()) }
 
     Box(
@@ -335,12 +424,12 @@ fun FavouriteMovieItem(
 
              Icon(painter = painterResource(id = R.drawable.heart_remove_24px),
                  tint = Color.Red,
-                 contentDescription = stringResource(id = R.string.btn_back_fav),
+                 contentDescription = stringResource(id = R.string.delete_fromFav_icon),
                  modifier = modifier
                      .align(Alignment.BottomEnd)
                      .padding(end = 8.dp)
                      .clickable {
-                         onRemoveFromFavClick.invoke()
+                         onRemoveFromFavClick.invoke(movie.id)
                      })
 
 
@@ -349,8 +438,8 @@ fun FavouriteMovieItem(
                        .data("${Constants.IMAGE_URL}${movie?.posterPath}")
                         .crossfade(true)
                         .build(),
-                    placeholder = painterResource(R.drawable.images),
-                    contentDescription = stringResource(R.string.details_image_description),
+                    //placeholder = painterResource(R.drawable.images),
+                    contentDescription = stringResource(R.string.details_image_fav),
                      contentScale = ContentScale.FillBounds,
                        modifier  = modifier
                            .align(Alignment.TopStart)
@@ -363,30 +452,46 @@ fun FavouriteMovieItem(
         }
     }
 
-//@SuppressLint("SuspiciousIndentation")
-//@Composable
-//fun ConfirmDialog(showDialog,onConfirmClick:()->Unit) {
-//    if(showDialog)
-//        AlertDialog(
-//            onDismissRequest = { showDialog.value= false},
-//
-//            title = {
-//                Text(text = "Alert Dialog")
-//            },
-//            text = {
-//                Text("JetPack Compose Alert Dialog!")
-//            },
-//            confirmButton = {
-//                showDialog.value = false
-//                           onConfirmClick.invoke() },
-//            dismissButton = {showDialog.value = false}
-//
-//        )
-//}
+@SuppressLint("SuspiciousIndentation")
+@Composable
+fun ConfirmDialog(
+    modifier: Modifier,
+    onConfirmClick: () -> Unit,
+    onDismissClick: () -> Unit
+) {
+
+       AlertDialog(
+            onDismissRequest = { onDismissClick.invoke()},
+
+            title = {
+                Text(text = stringResource(id = R.string.confirm_dilog_title))
+            },
+            text = {
+                Text(stringResource(id = R.string.delete_dialog_message))
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onConfirmClick.invoke()
+                    }) {
+                    Text(stringResource(id = R.string.delete))
+                }
+                },
+            dismissButton = {
+
+                Button(
+                    onClick = {
+                        onDismissClick.invoke()
+                    }) {
+                    Text(stringResource(id = R.string.cancel))
+                }
+            }
+
+        )
+}
 
 @Preview(showBackground = true, heightDp = 700)
 @Composable
 fun Preview(){
-    val movie  = Movie(title = "first move details", releaseDate ="2020" , isFav = false,voteAverage = 7.6,overview = "hello helloe hello,hello,hello,hello", video = true)
     FavouriteScreen(Modifier, rememberNavController())
 }

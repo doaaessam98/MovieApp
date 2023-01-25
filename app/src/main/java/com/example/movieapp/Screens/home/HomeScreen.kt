@@ -68,7 +68,7 @@ fun HomeScreen (
                 val (topScreenRef, searchRef) = createRefs()
                 Box(modifier = Modifier
                     .background(
-                        Color.Blue,
+                        MaterialTheme.colors.secondary,
                         shape = RoundedCornerShape(bottomEnd = 12.dp, bottomStart = 12.dp)
                     )
                     .height(240.dp)
@@ -85,7 +85,6 @@ fun HomeScreen (
                                 end.linkTo(parent.end)
                                 start.linkTo(parent.start)
                             }) {
-                            Log.e(TAG, "HomeScreen: search", )
                            viewModel.setEvent(HomeIntent.OpenSearchForMovie)
                         }
                     }
@@ -112,13 +111,13 @@ fun HomeScreen (
                 // upcoming
                 Column(
                     modifier
-                        .padding(16.dp)
+                        .padding(end = 16.dp, top = 8.dp)
                         .constrainAs(upcomingList) {
-                            start.linkTo(parent.start)
+                            start.linkTo(parent.start,16.dp)
                             top.linkTo(trendingList.bottom)
 
                         }) {
-                        UpcomingMovieList(modifier,R.string.up_coming,upcomingMovies,isLoading) {movie->
+                        UpcomingMovieList(modifier,R.string.up_coming,upcomingMovies) {movie->
                         viewModel.setEvent(HomeIntent.MovieSelected(movie = movie))
 
                     }
@@ -127,10 +126,10 @@ fun HomeScreen (
 
                 Column(
                     modifier
-                        .padding(16.dp)
+                        .padding(end=16.dp)
                         .constrainAs(popularList) {
-                            start.linkTo(parent.start)
-                            top.linkTo(upcomingList.bottom)
+                            start.linkTo(parent.start,16.dp)
+                            top.linkTo(upcomingList.bottom,8.dp)
 
                         }) {
                      PopularMovieList(modifier,R.string.popular,popularMovies) { movie->
@@ -187,7 +186,7 @@ fun TrendingMovies(
         color = Color.White,
      )
 
-    LazyRow {
+    LazyRow(modifier= modifier.height(200.dp)){
         items(trendingMovies!!) { movie ->
             TrendMovieItem(modifier, movie!!,onMovieClicked)
             Divider()
@@ -232,7 +231,9 @@ fun TrendingMovies(
                     Modifier.fillParentMaxSize()
                 }
                 Column(
-                    modifier = modifier.fillParentMaxHeight().padding(top=32.dp),
+                    modifier = modifier
+                        .fillParentMaxHeight()
+                        .padding(top = 32.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -285,12 +286,88 @@ fun PopularMovieList(
     Text(
         text = stringResource(id = title),
         style = MaterialTheme.typography.h5,
-        color = Color.Blue,
+        color = MaterialTheme.colors.secondary,
     )
     if(movies!=null) {
         LazyRow(modifier = modifier.padding(top = 8.dp)) {
             items(movies) { movie ->
                 PopularMovieItem(modifier, movie!!, onMovieClicked)
+            }
+            val loadState = movies.loadState.mediator
+            item {
+                if (loadState?.refresh == LoadState.Loading) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxSize(),
+                    ) {
+                        LoadingImageShimmer(modifier = modifier
+                            .height(200.dp)
+                            .fillMaxWidth(), width = 200.0, height =200.0 )
+                    }
+                }
+
+                if (loadState?.append == LoadState.Loading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = Color.Red)
+                    }
+                }
+
+                if (loadState?.refresh is LoadState.Error || loadState?.append is LoadState.Error) {
+                    val isPaginatingError = (loadState.append is LoadState.Error) || movies.itemCount > 1
+                    val error = if (loadState.append is LoadState.Error)
+                        (loadState.append as LoadState.Error).error
+                    else
+                        (loadState.refresh as LoadState.Error).error
+
+                    val modifier = if (isPaginatingError) {
+                        Modifier.padding(8.dp)
+                    } else {
+                        Modifier.fillParentMaxSize()
+                    }
+                    Column(
+                        modifier = modifier
+                            .fillParentMaxHeight()
+                            .padding(top = 32.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        if (!isPaginatingError) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(64.dp),
+                                imageVector = Icons.Rounded.Warning, contentDescription = null
+                            )
+                        }
+
+                        Text(
+                            modifier = Modifier
+                                .padding(8.dp),
+                            text = stringResource(id = R.string.loading_error_message),
+                            textAlign = TextAlign.Center,
+                            color = Color.White,
+
+                            )
+
+                        Button(
+                            onClick = {
+                                movies.refresh()
+                            },
+                            content = {
+                                Text(text = "Refresh")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.primary,
+                                contentColor = Color.White,
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -300,18 +377,95 @@ fun UpcomingMovieList(
     modifier: Modifier,
     title: Int,
     movies:LazyPagingItems<Movie>?,
-    isLoading: Boolean?,
     onMovieClicked: (Movie) -> Unit
 ) {
     Text(
         text = stringResource(id = title),
         style = MaterialTheme.typography.h5,
-        color = Color.Blue,
+        color = MaterialTheme.colors.secondary,
     )
     if(movies!=null) {
-        LazyRow(modifier.padding(top = 8.dp)) {
+        LazyRow(modifier.padding(top = 8.dp).height(120.dp)) {
             items(movies) { movie ->
                 UpcomingMovieItem(modifier, movie!!, onMovieClicked)
+            }
+            val loadState = movies.loadState.mediator
+
+            item {
+                if (loadState?.refresh == LoadState.Loading) {
+
+                    Row(
+                        modifier = Modifier
+                            .fillParentMaxSize(),
+                    ) {
+                        LoadingImageShimmer(modifier = modifier.clip(CircleShape), width = 120.0, height =120.0 )
+                        LoadingImageShimmer(modifier = modifier.clip(CircleShape), width = 120.0, height =120.0 )
+                        LoadingImageShimmer(modifier = modifier.clip(CircleShape), width = 120.0, height =120.0 )
+
+                    }
+                }
+
+                if (loadState?.append == LoadState.Loading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = Color.Red)
+                    }
+                }
+
+                if (loadState?.refresh is LoadState.Error || loadState?.append is LoadState.Error) {
+                    val isPaginatingError = (loadState.append is LoadState.Error) || movies.itemCount > 1
+                    val error = if (loadState.append is LoadState.Error)
+                        (loadState.append as LoadState.Error).error
+                    else
+                        (loadState.refresh as LoadState.Error).error
+
+                    val modifier = if (isPaginatingError) {
+                        Modifier.padding(8.dp)
+                    } else {
+                        Modifier.fillParentMaxSize()
+                    }
+                    Column(
+                        modifier = modifier
+                            .fillParentMaxHeight()
+                            .padding(top = 32.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        if (!isPaginatingError) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(64.dp),
+                                imageVector = Icons.Rounded.Warning, contentDescription = null
+                            )
+                        }
+
+                        Text(
+                            modifier = Modifier
+                                .padding(8.dp),
+                            text = stringResource(id = R.string.loading_error_message),
+                            textAlign = TextAlign.Center,
+                            color = Color.White,
+
+                            )
+
+                        Button(
+                            onClick = {
+                                movies.refresh()
+                            },
+                            content = {
+                                Text(text = "Refresh")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.primary,
+                                contentColor = Color.White,
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -323,25 +477,54 @@ fun PopularMovieItem(
     modifier: Modifier,
     movie: Movie,
     onMovieClicked: (Movie) -> Unit) {
+    var isImageLoading by remember { mutableStateOf(false) }
 
-    Card(
-        modifier
-            .fillMaxWidth()
-            .padding(end = 16.dp)
-            .clickable { onMovieClicked.invoke(movie) },
+   Box(modifier =modifier ){
+
+   Card(
+       modifier
+           .height(200.dp)
+           .width(150.dp)
+           .padding(end = 16.dp)
+           .clickable { onMovieClicked.invoke(movie) },
         elevation = 4.dp,
         shape = RoundedCornerShape(20.dp)
 
     ) {
-        GlideImage(
-                 model = "${Constants.IMAGE_URL}${movie?.posterPath}",
-                  contentDescription = "",
-            modifier
-                .height(200.dp)
-                .fillMaxWidth(),
-                  contentScale = ContentScale.Fit
+       if(movie.posterPath!=null) {
 
-                    ) }
+
+           val painter = rememberAsyncImagePainter(
+               model = "${Constants.IMAGE_URL}${movie?.posterPath}",
+           )
+
+           isImageLoading = when (painter.state) {
+               is AsyncImagePainter.State.Loading -> true
+               else -> false
+           }
+
+
+           Image(
+               modifier = Modifier
+                   .height(200.dp)
+                   .fillMaxWidth(),
+               painter = painter,
+               contentDescription = "Poster Image",
+               contentScale = ContentScale.FillBounds,
+           )
+
+
+       }
+   }
+       if (isImageLoading) {
+           CircularProgressIndicator(
+               modifier = Modifier.align(Alignment.Center),
+               color =MaterialTheme.colors.primary,
+           )
+       }
+
+
+    }
 
 
     }
@@ -354,66 +537,55 @@ fun UpcomingMovieItem(
     movie: Movie,
     onMovieClicked: (Movie) -> Unit) {
 
-    Column(
+    Box(
         modifier= modifier
             .padding(end = 16.dp)
+            .size(120.dp)
+            .clip(CircleShape)
+            .background(Color.Gray)
             .clickable { onMovieClicked.invoke(movie) },
-        horizontalAlignment = Alignment.CenterHorizontally
+
 
     ) {
-                    GlideImage(
-                        model = "${Constants.IMAGE_URL}${movie?.posterPath}",
-                        contentDescription = "",
-                        modifier
-                            .clip(CircleShape)
-                            .size(120.dp),
-                        contentScale = ContentScale.FillBounds
+        var isImageLoading by remember { mutableStateOf(false) }
 
-                    )
-
-
-                }
-
-            }
-
-
-
-
-@Composable
-    fun HomeSearchBar(
-        modifier: Modifier,
-        onSearchClick:()->Unit
-    ) {
-        TextField(
-            value = "",
-            onValueChange = {},
-            enabled = false,
-            modifier = modifier
-                .clickable {
-                    Log.e(TAG, "HomeSearchBar:hello ",)
-                    onSearchClick.invoke()
-                }
-                .background(color = Color.White, shape = RoundedCornerShape(50))
-                .fillMaxWidth()
-                .heightIn(min = 48.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            placeholder = {
-                Text(stringResource(R.string.placeholder_search))
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    tint = Color.DarkGray,
-                    contentDescription = null
-                )
-            }
-
+        val painter = rememberAsyncImagePainter(
+            model = "${Constants.IMAGE_URL}${movie.posterPath}",
         )
-    }
+
+        isImageLoading = when (painter.state) {
+            is AsyncImagePainter.State.Loading -> true
+            else -> false
+        }
+
+
+        Image(
+            modifier = Modifier
+                .clip(CircleShape)
+                .size(120.dp),
+            painter = painter,
+            contentDescription = "Poster Image",
+            contentScale = ContentScale.FillBounds,
+        )
+
+
+        if (isImageLoading) {
+
+               CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color =MaterialTheme.colors.primary,
+            )
+        }
+
+
+                }
+
+            }
+
+
+
+
+
 @OptIn(ExperimentalGlideComposeApi::class)
     @Composable
     fun TrendMovieItem(
@@ -425,7 +597,7 @@ fun UpcomingMovieItem(
         var isImageLoading by remember { mutableStateOf(false) }
         Card(
             modifier
-                .fillMaxWidth()
+                .width(300.dp)
                 .padding(12.dp)
                 .clickable { onMovieClicked.invoke(movie!!) },
             elevation = 4.dp,
@@ -486,3 +658,38 @@ fun UpcomingMovieItem(
 
 
 
+@Composable
+fun HomeSearchBar(
+    modifier: Modifier,
+    onSearchClick:()->Unit
+) {
+    TextField(
+        value = "",
+        onValueChange = {},
+        enabled = false,
+        modifier = modifier
+            .clickable {
+                Log.e(TAG, "HomeSearchBar:hello ",)
+                onSearchClick.invoke()
+            }
+            .background(color = Color.White, shape = RoundedCornerShape(50))
+            .fillMaxWidth()
+            .heightIn(min = 48.dp),
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        placeholder = {
+            Text(stringResource(R.string.placeholder_search))
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                tint = Color.DarkGray,
+                contentDescription = null
+            )
+        }
+
+    )
+}

@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.movieapp.data.source.local.db.MovieDao
 import com.example.movieapp.data.source.local.db.MoviesDatabase
-import com.example.movieapp.data.source.local.db.RemoteKeysDao
+import com.example.movieapp.data.source.local.db.daos.*
 
 
 import dagger.Module
@@ -20,16 +20,30 @@ object DataBaseModule {
 
     @Provides
      @Singleton
-     fun repoDataBase(@ApplicationContext context: Context): MoviesDatabase =
+     fun MovieDataBase(@ApplicationContext context: Context): MoviesDatabase =
          Room.databaseBuilder(context, MoviesDatabase::class.java,"movie_DB").build()
 
     @Provides
     @Singleton
-    fun provideRepoDataBase(db: MoviesDatabase): MovieDao =db.movieDao()
+    fun provideMovieDataBase(db: MoviesDatabase): MovieDao =db.movieDao()
+    @Provides
+    @Singleton
+    fun provideGenreDataBase(db: MoviesDatabase): GenreDao =db.genreDao()
 
     @Provides
     @Singleton
-    fun provideRemoteKeysDataBase(db: MoviesDatabase): RemoteKeysDao =db.remoteKeysDao()
+    fun provideUpcomingRemoteKeysDataBase(db: MoviesDatabase): UpcomingRemoteKeysDao =db.upcomingRemoteKeysDao()
+
+    @Provides
+    @Singleton
+    fun provideTrendingRemoteKeysDataBase(db: MoviesDatabase): TrendingRemoteKeysDao =db.trendingRemoteKeysDao()
+    @Provides
+    @Singleton
+    fun providePopularRemoteKeysDataBase(db: MoviesDatabase): PopularRemoteKeysDao =db.popularRemoteKeysDao()
+
+    @Provides
+    @Singleton
+    fun provideCategoryRemoteKeysDataBase(db: MoviesDatabase): CategoryRemoteKeysDao =db.categoryRemoteKeysDao()
 }
 
 
