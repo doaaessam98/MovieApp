@@ -1,5 +1,6 @@
 package com.example.movieapp.Screens.category
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.viewModelScope
 import com.example.movieapp.Screens.favourite.FavouriteState
 import com.example.movieapp.base.BaseViewModel
@@ -60,6 +61,7 @@ class CategoryViewModel @Inject constructor(
 
     }
 
+    @SuppressLint("SuspiciousIndentation")
     private fun getGenres() {
         viewModelScope.launch {
             repository.getGenres().let {

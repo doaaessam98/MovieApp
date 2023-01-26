@@ -29,7 +29,7 @@ interface MovieDao {
     @Query("SELECT * FROM movie ORDER BY popularity DESC")
     fun getSearchMovies(): PagingSource<Int, Movie>
 
-    @Query("SELECT * FROM movie WHERE genreIds LIKE :genre ")
+    @Query("SELECT * FROM movie WHERE genreIds LIKE :genre  ORDER BY popularity DESC ")
     fun getCategoryMovies(genre: String): PagingSource<Int, Movie>
 
     @Query("UPDATE movie set isTrending = 0 WHERE  isTrending = 1")

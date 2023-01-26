@@ -367,7 +367,7 @@ fun FavouriteMovieItem(
         {
             ConstraintLayout(modifier.padding( 8.dp)) {
                 val (name,releaseYear,rate) = createRefs()
-                val startGuideline = createGuidelineFromStart(110.dp)
+                val startGuideline = createGuidelineFromStart(120.dp)
 
                 Text(text = movie.title,
                     style = MaterialTheme.typography.h6,
@@ -375,7 +375,7 @@ fun FavouriteMovieItem(
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    modifier= modifier
+                    modifier= modifier.width(160.dp)
                         .constrainAs(name) {
                             top.linkTo(parent.top,8.dp)
                              end.linkTo(parent.end,8.dp)

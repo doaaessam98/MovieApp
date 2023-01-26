@@ -79,7 +79,7 @@ fun MovieDetailsScreen(
             Box(
                 modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .height(500.dp)
                     .constrainAs(topBox) {
                         top.linkTo(parent.top)
                         start.linkTo(parent.start)
@@ -103,7 +103,7 @@ fun MovieDetailsScreen(
                         contentScale = ContentScale.Crop,
                         modifier = modifier
                             .fillMaxWidth()
-                            .height(400.dp)
+                            .height(500.dp)
                     )
 
 
@@ -183,13 +183,13 @@ fun MovieDetailsScreen(
 
         Card(
                 elevation = 8.dp,
-                modifier = modifier.padding(top = 160.dp)
+                modifier = modifier.padding(top = 260.dp).fillMaxHeight()
 
                     ) {
 
         ConstraintLayout(
             modifier
-                .padding(top = 16.dp, end = 8.dp, bottom = 32.dp, start = 24.dp)
+                .padding(top = 16.dp, end = 8.dp, bottom = 32.dp, start = 24.dp).fillMaxHeight()
                 ,
 
                        ) {
@@ -321,7 +321,7 @@ fun MovieDetailsScreen(
                 contentScale = ContentScale.FillBounds,
                 modifier = modifier
                     .align(Alignment.TopStart)
-                    .padding(start = 8.dp, top = 150.dp)
+                    .padding(start = 8.dp, top = 250.dp)
                     .height(200.dp)
                     .width(130.dp)
                     .background(color = Color.Transparent, shape = RoundedCornerShape(4.dp))
